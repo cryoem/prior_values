@@ -1,8 +1,10 @@
 import sys
 sys.path.append('/Users/stabrin/Desktop/prior_test/test_driven/modules')
 import numpy as np
+import numpy.lib.recfunctions as nlr
 import scipy.stats as so
 import os
+from sparx import *
 #import matplotlib.pylab as plt
 
 
@@ -15,44 +17,63 @@ def get_filaments(array, id_name):
     for entry in array:
         if entry[id_name] != current_id:
             current_id = entry[id_name]
-            filaments.append(np.array(current_filament))
+            filaments.append(np.atleast_1d(nlr.stack_arrays(current_filament)))
             current_filament = []
             current_filament.append(entry)
         else:
             current_filament.append(entry)
 
-    filaments.append(np.array(current_filament))
+    filaments.append(np.atleast_1d(nlr.stack_arrays(current_filament)))
 
     return np.array(filaments)
 
 
-def get_local_mean(input_array, rotate_angle, tolerance, angle_max, angle_min):
-    """Calculate the local mean"""
+def get_local_mean(input_array, rotate_angle, tolerance):
+    """Calculate the local mean of the rotated array"""
     inside_tolerance, outside_tolerance = get_tolerance_outliers(input_array, tolerance)
 
     local_mean = np.mean(inside_tolerance)
 
-    mean = subtract_and_adjust_angles(rotate_angle, local_mean, angle_max, angle_min)
-    data_rotated = subtract_and_adjust_angles(input_array, local_mean, angle_max, angle_min)
-    assert(angle_min <= mean <= angle_max, input_array, rotate_angle)
+    mean = subtract_and_adjust_angles(rotate_angle, local_mean, 180, -180)
+    data_rotated = subtract_and_adjust_angles(input_array, local_mean, 180, -180)
+    assert(-180 <= mean <= 180)
 
     return data_rotated, mean, len(outside_tolerance)
 
 
 def rotate_angles(array, angle_max, angle_min):
-    """Rotate angles to match the median"""
+    """Rotate angles to match 0 with the median"""
 
-    diff_from_zero = np.mean(np.abs(array))
-    nr_positive = len(array[array >= 0])
-    nr_negative = len(array) - nr_positive
+    if angle_max == 180:
+        array_compare = array
+    elif angle_max == 360:
+        array_compare = subtract_and_adjust_angles(array, 0, 180, -180)
+    else:
+        pass
+
+    diff_from_zero = np.mean(np.abs(array_compare))
+    nr_positive = len(array_compare[array_compare >= 0])
+    nr_negative = len(array_compare) - nr_positive
     data_rotated = np.copy(array)
 
-    if diff_from_zero > 90:
-        for idx in range(len(data_rotated)):
-            if data_rotated[idx] < 0:
-                data_rotated[idx] = data_rotated[idx] + 360
-            else:
-                pass
+    if angle_max == 180:
+        if diff_from_zero > 90:
+            for idx in range(len(data_rotated)):
+                if data_rotated[idx] < angle_max/2:
+                    data_rotated[idx] = data_rotated[idx] + 360
+                else:
+                    pass
+        else:
+            pass
+    elif angle_max == 360:
+        if diff_from_zero < 90:
+            for idx in range(len(data_rotated)):
+                if data_rotated[idx] > angle_max/2:
+                    data_rotated[idx] = data_rotated[idx] - 360
+                else:
+                    pass
+        else:
+            pass
     else:
         pass
 
@@ -66,7 +87,7 @@ def rotate_angles(array, angle_max, angle_min):
     current_median_old = current_median
 
     while iteration < 100:
-        data_rotated = subtract_and_adjust_angles(data_rotated, current_median, angle_max, angle_min)
+        data_rotated = subtract_and_adjust_angles(data_rotated, current_median, 180, -180)
         median = np.median(data_rotated)
         rotate_angle += median
 
@@ -80,13 +101,13 @@ def rotate_angles(array, angle_max, angle_min):
 
         iteration += 1
 
-    rotate_angle = subtract_and_adjust_angles(rotate_angle, 0, angle_max, angle_min)
+    rotate_angle = subtract_and_adjust_angles(rotate_angle, 0, 180, -180)
 
     return data_rotated, rotate_angle
 
 
 def subtract_and_adjust_angles(input_data, value, angle_max, angle_min):
-    """Subtract a value from an angle"""
+    """Subtract a value from an angle and adjust the angle range"""
     data_subtracted = np.subtract(input_data, value)
     if isinstance(data_subtracted, np.int64) or \
             isinstance(data_subtracted, np.float64):
@@ -110,15 +131,13 @@ def subtract_and_adjust_angles(input_data, value, angle_max, angle_min):
     return data_subtracted
 
 
-def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament, angle_max, angle_min):
+def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament):
     """Get filament outliers based on tolerance"""
 
     data_rotated, rotate_angle, nr_outliers = get_local_mean(
         data_rotated,
         rotate_angle,
-        tolerance,
-        angle_max,
-        angle_min
+        tolerance
         )
     rotate_angle_old = rotate_angle
     iterations = 0
@@ -126,9 +145,7 @@ def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filam
         data_rotated, rotate_angle, nr_outliers = get_local_mean(
             data_rotated,
             rotate_angle,
-            tolerance,
-            angle_max,
-            angle_min
+            tolerance
             )
 
         if rotate_angle == rotate_angle_old:
@@ -147,7 +164,7 @@ def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filam
     else:
         outlier = False
 
-    return outlier, rotate_angle, inside_tolerance_idx, outside_tolerance_idx
+    return outlier, data_rotated, rotate_angle, inside_tolerance_idx, outside_tolerance_idx
 
 
 def get_tolerance_outliers(input_array, tolerance):
@@ -200,7 +217,6 @@ def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside
             skip = 0
             for number_idx in range(mean_idx, mean_idx + window_size):
                 if number_idx in inside_tolerance_idx:
-                    print(number_idx)
                     summation += input_array[number_idx]
                 else:
                     assert(number_idx in outside_tolerance_idx)
@@ -231,11 +247,3 @@ def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside
 
     return mean_array
 
-
-def main():
-    """Start calculation"""
-    pass
-
-
-if __name__ == '__main__':
-    main()
