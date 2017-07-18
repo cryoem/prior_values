@@ -30,7 +30,7 @@ def swap_columns(array, name_one, name_two):
     return array
 
 
-def main(file_name, tolerance, tolerance_filament, window_size, typ='sphire'):
+def main(file_name, tolerance, tolerance_filament, window_size, plot, typ='sphire'):
     """Start calculation"""
 
     # Check angle range, import arrays
@@ -55,15 +55,26 @@ def main(file_name, tolerance, tolerance_filament, window_size, typ='sphire'):
 
     filament_array = calculations.get_filaments(array, id_name)
     array_modified = None
+    if plot:
+        do_plot = True
 
     for idx, filament in enumerate(filament_array):
-        data_rotated, rotate_angle = calculations.rotate_angles(filament[angle_name], angle_max, angle_min)
+        if do_plot:
+            if idx % 10000 == 0:
+                plot = True
+            else:
+                plot = False
+        calculations.plot_polar('raw_data', filament[angle_name], 0, angle_max, 0)
+
+        data_rotated = calculations.subtract_and_adjust_angles(filament[angle_name], 0, 180, -180)
+        data_rotated, rotate_angle = calculations.rotate_angles(data_rotated, plot)
 
         is_outlier, data_rotated, rotate_angle, inside_tol_idx, outside_tol_idx = calculations.get_filament_outliers(
             data_rotated=data_rotated,
             rotate_angle=rotate_angle,
             tolerance=tolerance,
-            tolerance_filament=tolerance_filament
+            tolerance_filament=tolerance_filament,
+            plot=plot
             )
 
         mean_array = calculations.calculate_mean_prior(
@@ -71,10 +82,16 @@ def main(file_name, tolerance, tolerance_filament, window_size, typ='sphire'):
             window_size=window_size,
             inside_tolerance_idx=inside_tol_idx,
             outside_tolerance_idx=outside_tol_idx,
-            rotate_angle=rotate_angle,
-            angle_max=angle_max,
-            angle_min=angle_min
+            plot=plot
             )
+
+        calculations.plot_polar('mean_array', mean_array, rotate_angle, 180, -180)
+
+        mean_array = calculations.subtract_and_adjust_angles(
+            mean_array, -rotate_angle, angle_max, angle_min
+            )
+
+        calculations.plot_polar('mean_array', mean_array, 0, angle_max, angle_min)
 
         filament = add_column(filament, mean_array, angle_name_new)
         if typ == 'sphire':
@@ -89,15 +106,24 @@ def main(file_name, tolerance, tolerance_filament, window_size, typ='sphire'):
 
 
 if __name__ == '__main__':
-    name = 'bdb:stack_small'
+    plot = False
+    if sys.argv[1] == 'relion':
+        name = 'data_test.star'
+        typ = 'relion'
+        plot = True
+    else:
+        name = 'bdb:stack_small'
+        typ = 'sphire'
+
     tolerance = 30
-    tolerance_filament = 0.25
+    tolerance_filament = 0.2
     window_size = 4
-    typ = 'sphire'
-    start.main(
+
+    main(
         file_name=name,
         tolerance=tolerance,
         tolerance_filament=tolerance_filament,
         window_size=window_size,
-        typ=typ
+        typ=typ,
+        plot=plot
         )

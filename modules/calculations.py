@@ -5,7 +5,8 @@ import numpy.lib.recfunctions as nlr
 import scipy.stats as so
 import os
 from sparx import *
-#import matplotlib.pylab as plt
+import matplotlib.pyplot as plt
+import matplotlib
 
 
 def get_filaments(array, id_name):
@@ -34,46 +35,31 @@ def get_local_mean(input_array, rotate_angle, tolerance):
 
     local_mean = np.mean(inside_tolerance)
 
-    mean = subtract_and_adjust_angles(rotate_angle, local_mean, 180, -180)
+    mean = subtract_and_adjust_angles(rotate_angle, -local_mean, 180, -180)
     data_rotated = subtract_and_adjust_angles(input_array, local_mean, 180, -180)
     assert(-180 <= mean <= 180)
 
     return data_rotated, mean, len(outside_tolerance)
 
 
-def rotate_angles(array, angle_max, angle_min):
+def rotate_angles(data_rotated, plot=False):
     """Rotate angles to match 0 with the median"""
+    plot_polar('raw_data', data_rotated, 0, 180, -180)
 
-    if angle_max == 180:
-        array_compare = array
-    elif angle_max == 360:
-        array_compare = subtract_and_adjust_angles(array, 0, 180, -180)
-    else:
-        pass
+    diff_from_zero = np.median(np.abs(data_rotated))
+    nr_positive = len(data_rotated[data_rotated >= 0])
+    nr_negative = len(data_rotated) - nr_positive
+    if plot:
+        plot_polar('absolut_values', np.abs(data_rotated), 0, 180, -180)
+        plot_polar('absolut_values_diff_from_zero', np.abs(data_rotated), 0, 180, -180, mean=diff_from_zero)
+        plot_polar('absolut_values_diff_from_zero', data_rotated, 0, 180, -180, mean=diff_from_zero)
 
-    diff_from_zero = np.mean(np.abs(array_compare))
-    nr_positive = len(array_compare[array_compare >= 0])
-    nr_negative = len(array_compare) - nr_positive
-    data_rotated = np.copy(array)
-
-    if angle_max == 180:
-        if diff_from_zero > 90:
-            for idx in range(len(data_rotated)):
-                if data_rotated[idx] < angle_max/2:
-                    data_rotated[idx] = data_rotated[idx] + 360
-                else:
-                    pass
-        else:
-            pass
-    elif angle_max == 360:
-        if diff_from_zero < 90:
-            for idx in range(len(data_rotated)):
-                if data_rotated[idx] > angle_max/2:
-                    data_rotated[idx] = data_rotated[idx] - 360
-                else:
-                    pass
-        else:
-            pass
+    if diff_from_zero > 90:
+        for idx in range(len(data_rotated)):
+            if data_rotated[idx] < 0:
+                data_rotated[idx] = data_rotated[idx] + 360
+            else:
+                pass
     else:
         pass
 
@@ -85,11 +71,15 @@ def rotate_angles(array, angle_max, angle_min):
     iteration = 0
     rotate_angle = current_median
     current_median_old = current_median
+    if plot:
+        plot_polar('current_median', data_rotated, 0, 360, 0, mean=rotate_angle)
 
     while iteration < 100:
         data_rotated = subtract_and_adjust_angles(data_rotated, current_median, 180, -180)
         median = np.median(data_rotated)
-        rotate_angle += median
+        rotate_angle = subtract_and_adjust_angles(rotate_angle, -median, 180, -180)
+        if iteration == 0:
+            plot_polar('current_median_{0}'.format(iteration), data_rotated, current_median, 180, -180, mean=median, old_mean=0)
 
         if median == 0:
             break
@@ -100,8 +90,8 @@ def rotate_angles(array, angle_max, angle_min):
             current_median = median
 
         iteration += 1
-
-    rotate_angle = subtract_and_adjust_angles(rotate_angle, 0, 180, -180)
+    if plot:
+        plot_polar('rotated_data_median', data_rotated, rotate_angle, 180, -180, old_mean=0)
 
     return data_rotated, rotate_angle
 
@@ -131,17 +121,20 @@ def subtract_and_adjust_angles(input_data, value, angle_max, angle_min):
     return data_subtracted
 
 
-def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament):
+def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament, plot=False):
     """Get filament outliers based on tolerance"""
 
+    if plot:
+        plot_polar('rotated_data_for_mean', data_rotated, rotate_angle, 180, -180, old_mean=0, tol=tolerance, mean=0)
+        plot_rotate_angle = rotate_angle
     data_rotated, rotate_angle, nr_outliers = get_local_mean(
         data_rotated,
         rotate_angle,
         tolerance
         )
     rotate_angle_old = rotate_angle
-    iterations = 0
-    while iterations < 100:
+    iteration = 0
+    while iteration < 100:
         data_rotated, rotate_angle, nr_outliers = get_local_mean(
             data_rotated,
             rotate_angle,
@@ -153,8 +146,10 @@ def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filam
         else:
             rotate_angle_old = rotate_angle
 
-        iterations += 1
+        iteration += 1
 
+    if plot:
+        plot_polar('rotated_data_mean', data_rotated, rotate_angle, 180, -180, mean=0, tol=tolerance, old_mean=plot_rotate_angle-rotate_angle_old)
     inside_tolerance_idx, outside_tolerance_idx = find_tolerance_outliers(
         data_rotated, tolerance
         )
@@ -188,14 +183,14 @@ def find_tolerance_outliers(input_array, tolerance):
         input_array <= tolerance
         ))
     outside_tolerance = np.where(np.logical_or(
-        input_array <= -tolerance,
-        input_array >= tolerance
+        input_array < -tolerance,
+        input_array > tolerance
         ))
 
     return inside_tolerance[0], outside_tolerance[0]
 
 
-def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside_tolerance_idx, rotate_angle, angle_max, angle_min):
+def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside_tolerance_idx, plot=False):
     """Calculate running mean of the filament array"""
 
     mean_array = np.empty(len(input_array))
@@ -210,7 +205,10 @@ def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside
         mean_list = []
         mean_x_list = []
         number_of_means = len(input_array) - window_size + 1
-        min_x_mean = window_size // 2
+        if window_size / float(2) % 2 == 0:
+            min_x_mean = window_size / float(2) - 0.5
+        else:
+            min_x_mean = window_size // float(2)
 
         for mean_idx in range(number_of_means):
             summation = 0
@@ -232,18 +230,75 @@ def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside
         x_values_fit = np.array(mean_x_list)
         slope, intercept, rvalue, pvalue, stderr = so.linregress(x_values_fit, mean_for_fit)
 
+        x_values_fit_mean = np.mean(x_values_fit)
+        x_values_fit_variance = np.sum((x_values_fit - x_values_fit_mean)**2)
+        slope_sd = stderr * np.sqrt(1/float(len(x_values_fit)) + x_values_fit_mean**2/x_values_fit_variance)
+        intercept_sd = stderr * np.sqrt(1/x_values_fit_variance)
+
         for idx in range(len(input_array)):
             mean_array[idx] = slope * idx + intercept
 
-        #plt.plot(x_values_fit, mean_for_fit, 'x')
-        #plt.plot(range(len(input_array)), input_array, 'o')
-        #x = np.linspace(0, len(input_array)-1, 10000)
-        #plt.plot(x, slope * x + intercept)
-        #plt.ylim([-30, 30])
-        #plt.title(rotate_angle)
-        #plt.show()
-
-    mean_array = subtract_and_adjust_angles(mean_array, -rotate_angle, angle_max, angle_min)
+        if plot:
+            plt.plot(x_values_fit, mean_for_fit, 'x', label='running averages')
+            plt.plot(range(len(input_array)), input_array, 'o', label='data')
+            x = np.linspace(0, len(input_array)-1, 10000)
+            plt.plot(x, slope * x + intercept, label='linear regression')
+            plt.ylim([-30, 30])
+            plt.legend(loc='best')
+            plt.xlabel('Particle helix id')
+            plt.ylabel('Relative angle / degree')
+            plt.savefig('pics/fit.png')
+            plt.clf()
 
     return mean_array
 
+index_plot = 0
+def plot_polar(name, array, angle_rotation, angle_max, angle_min, mean=None, tol=None, label=None, old_mean=None):
+    """Do a polar plot"""
+    global index_plot
+    # radar green, solid grid lines
+    plt.rc('grid', color='#316931', linewidth=1, linestyle='-')
+    plt.rc('xtick', labelsize=15)
+    plt.rc('ytick', labelsize=15)
+
+    # force square figure and square axes looks better for polar, IMO
+    width, height = matplotlib.rcParams['figure.figsize']
+    size = min(width, height)
+
+    # make a square figure
+    fig = plt.figure(figsize=(size, size))
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], polar=True, axisbg='#d5de9c')
+
+    # Change the labels
+    ax.set_yticklabels([])
+    ax.set_theta_direction(-1)
+    offset = -np.radians(angle_rotation) + np.pi/2
+    ax.set_theta_offset(offset)
+    if angle_max == 360:
+        labels = [str(item) if item != 360 else str(0) for item in np.linspace(0, 360, 9) if item >= angle_min]
+    elif angle_max == 180:
+        labels = [str(item-360) if item > 180 else str(item) for item in np.linspace(0, 360, 9) if item >= angle_min]
+    else:
+        labels = [str(item) if item != 360 else str(0) for item in np.linspace(angle_min, angle_max, 9) if item >= angle_min]
+    ax.set_xticklabels(labels)
+
+    # Plot the data
+    color = plt.cm.Dark2(np.linspace(0, 1, len(array)))
+    for idx in range(len(array)):
+        plt.arrow(np.radians(array[idx]), 0.01, 0, 0.9, alpha=1, width=0.015, edgecolor=color[idx], facecolor=color[idx], lw=2, zorder=5)
+
+    if mean is not None:
+        plt.arrow(np.radians(mean), 0.01, 0, 0.9, alpha=1, width=0.005, edgecolor='black', facecolor='black', lw=4, zorder=5)
+
+    if old_mean is not None:
+        plt.arrow(np.radians(old_mean), 0.01, 0, 0.7, alpha=1, width=0.005, edgecolor='blue', facecolor='blue', lw=4, zorder=5)
+
+    if tol is not None:
+        plt.arrow(np.radians(mean+tol), 0.01, 0, 0.5, alpha=0.5, width=0.005, edgecolor='black', facecolor='black', lw=2, zorder=5)
+        plt.arrow(np.radians(mean-tol), 0.01, 0, 0.5, alpha=0.5, width=0.005, edgecolor='black', facecolor='black', lw=2, zorder=5)
+
+    # Beautify
+    #plt.title('{0} {1}'.format(np.max(array), np.min(array)))
+    plt.savefig('pics/{0:02d}_{1}.png'.format(index_plot, name))
+    index_plot += 1
+    plt.close(fig)

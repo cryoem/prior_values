@@ -194,7 +194,7 @@ class TestCalculations():
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
             return_array, mean = calculations.rotate_angles(return_array[0]['float'], 180, -180)
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array, mean, 30, 0.25)
-            assert(np.round(mean, 4) == 1.3333)
+            assert(np.round(mean, 4) == 0.6667)
 
 
         def test_get_filament_outliers_len_1_mean(self):
@@ -609,7 +609,7 @@ class TestCalculations():
                 )
             data_name = '_rlnAnglePsi'
             return_array, mean, nr_outliers = calculations.get_local_mean(output_array['_rlnAnglePsi'], 180, 30)
-            assert(179.58333333333334 == mean)
+            assert(-179.583 == np.round(mean,3))
 
 
         def test_get_local_mean_180_nr_outliers(self):
@@ -694,7 +694,7 @@ class TestCalculations():
                 )
             data_name = '_rlnAnglePsi'
             return_array, mean, nr_outliers = calculations.get_local_mean(output_array['_rlnAnglePsi'], 1.5, 30)
-            assert(mean == 1.6363636363636362)
+            assert(np.round(mean,3) == 1.5-(1.636-1.5))
 
 
         def test_get_local_mean_zero_nr_outlier(self):
@@ -988,7 +988,7 @@ class TestCalculations():
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
             mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 360, 0)
             print(mean_array)
-            assert(np.round(mean_array[0], 2) == 1.03)
+            assert(np.round(mean_array[0], 2) == 1.23)
 
 
         def test_calculate_mean_prior_one_outlier_length(self):
@@ -1058,7 +1058,7 @@ class TestCalculations():
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
             mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 360, 0)
             print(mean_array)
-            assert(np.round(mean_array[0], 2) == 1.02)
+            assert(np.round(mean_array[0], 2) == 1.24)
 
 
         def test_calculate_mean_prior_small_mean(self):
@@ -1120,7 +1120,7 @@ class TestCalculations():
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
             mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean, 360, 0)
             print(mean_array)
-            assert(np.round(mean_array[0], 3) == -177.333+360)
+            assert(np.round(mean_array[0], 3) == 182.0)
 
 
         def test_calculate_mean_prior_small_180_mean(self):
