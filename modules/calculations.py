@@ -44,7 +44,8 @@ def get_local_mean(input_array, rotate_angle, tolerance):
 
 def rotate_angles(data_rotated, plot=False):
     """Rotate angles to match 0 with the median"""
-    plot_polar('raw_data', data_rotated, 0, 180, -180)
+    if plot:
+        plot_polar('raw_data', data_rotated, 0, 180, -180)
 
     diff_from_zero = np.median(np.abs(data_rotated))
     nr_positive = len(data_rotated[data_rotated >= 0])
@@ -78,7 +79,7 @@ def rotate_angles(data_rotated, plot=False):
         data_rotated = subtract_and_adjust_angles(data_rotated, current_median, 180, -180)
         median = np.median(data_rotated)
         rotate_angle = subtract_and_adjust_angles(rotate_angle, -median, 180, -180)
-        if iteration == 0:
+        if iteration == 0 and plot:
             plot_polar('current_median_{0}'.format(iteration), data_rotated, current_median, 180, -180, mean=median, old_mean=0)
 
         if median == 0:
@@ -116,7 +117,7 @@ def subtract_and_adjust_angles(input_data, value, angle_max, angle_min):
             else:
                 pass
     else:
-        assert(False, 'Unreachable code')
+        assert(False)
 
     return data_subtracted
 
@@ -222,7 +223,7 @@ def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside
             if skip == window_size:
                 continue
             else:
-                mean_value = summation / float(window_size)
+                mean_value = summation / float(window_size - skip)
                 mean_list.append(mean_value)
                 mean_x_list.append(min_x_mean + mean_idx)
 

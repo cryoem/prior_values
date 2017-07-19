@@ -39,3 +39,16 @@ def get_sphire_stack(stack_path):
     return data_array
 
 
+def get_sphire_file(typ, input_file):
+    """Import the params and index file"""
+
+    if typ == 'index':
+        dtype = int
+    elif typ == 'params':
+        dtype = [('phi', '<f8'), ('theta', '<f8'), ('psi', '<f8'), ('shift_x', '<f8'), ('shift_y', '<f8'), ('err1', '<f8'), ('err2', '<f8'), ('norm', '<f8')]
+    else:
+        assert(False)
+
+    data = np.genfromtxt(input_file, dtype=dtype)
+
+    return data
