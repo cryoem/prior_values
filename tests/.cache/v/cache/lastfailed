@@ -1,13 +1,3 @@
 {
-  "klo/test_read_sphire.py::test_get_sphire_stack_length": true, 
-  "klo/test_read_star.py::test_import_star_file_length_data": true, 
-  "klo/test_read_star.py::test_import_star_file_length_header": true, 
-  "klo/test_read_star.py::test_import_star_file_path": true, 
-  "klo/test_write_star.py::test_write_star_file_exists": true, 
-  "klo/test_write_star.py::test_write_star_file_len_4": true, 
-  "klo/test_write_star.py::test_write_star_file_no_nans": true, 
-  "test_scripts.py::test_get_sphire_stack_length": true, 
-  "test_scripts.py::test_import_star_file_length_data": true, 
-  "test_scripts.py::test_import_star_file_length_header": true, 
-  "test_scripts.py::test_import_star_file_path": true
+  "test_calculation.py": true
 }
