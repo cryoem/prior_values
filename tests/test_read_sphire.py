@@ -12,6 +12,7 @@ class TestReadSphire():
         stack_name = 'bdb:stack_small'
         return_array = read_sphire.get_sphire_stack(stack_name)
         print(len(return_array))
+        print(return_array[0])
         assert(len(return_array) == 684)
 
 

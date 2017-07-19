@@ -8,16 +8,78 @@ import calculations
 
 class TestCalculations():
     class TestGetFilaments():
+        def test_get_filaments_length_filament_0_is_4(self):
+            output_array = np.array(
+                [
+                    (0, '0', 0.0),
+                    (0, '1', 1.0),
+                    (0, '2', 1.0),
+                    (0, '3', 170.0),
+                    (1, '2', 2.0),
+                    (1, '3', 32.0),
+                    (1, '0', 0.0),
+                    (1, '1', 1.0),
+                    (2, '2', 4.0),
+                    (2, '3', 3.0),
+                    (0, '0', 0.0),
+                    (0, '1', 1.0),
+                    (2, '2', 2.0),
+                    (3, '3', 3.0)
+                ],
+                dtype=[
+                    ('_rlnHelicalTubeID', '<i8'),
+                    ('str', '|S100'),
+                    ('float', '<f8')
+                    ]
+                )
+            return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
+            print(output_array)
+            print(return_array)
+            assert(len(return_array[0]) == 4)
+
+
+        def test_get_filaments_length_filament_6_is_1(self):
+            output_array = np.array(
+                [
+                    (0, '0', 0.0),
+                    (0, '1', 1.0),
+                    (0, '2', 1.0),
+                    (0, '3', 170.0),
+                    (1, '2', 2.0),
+                    (1, '3', 32.0),
+                    (1, '0', 0.0),
+                    (1, '1', 1.0),
+                    (2, '2', 4.0),
+                    (2, '3', 3.0),
+                    (0, '0', 0.0),
+                    (0, '1', 1.0),
+                    (2, '2', 2.0),
+                    (3, '3', 3.0)
+                ],
+                dtype=[
+                    ('_rlnHelicalTubeID', '<i8'),
+                    ('str', '|S100'),
+                    ('float', '<f8')
+                    ]
+                )
+            return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
+            print(output_array)
+            print(return_array)
+            assert(len(return_array[5]) == 1)
+
+
         def test_get_filaments_length(self):
             output_array = np.array(
                 [
                     (0, '0', 0.0),
                     (0, '1', 1.0),
+                    (0, '2', 1.0),
+                    (0, '3', 170.0),
                     (1, '2', 2.0),
-                    (1, '3', 3.0),
+                    (1, '3', 32.0),
                     (1, '0', 0.0),
                     (1, '1', 1.0),
-                    (2, '2', 2.0),
+                    (2, '2', 4.0),
                     (2, '3', 3.0),
                     (0, '0', 0.0),
                     (0, '1', 1.0),
@@ -62,7 +124,7 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array, mean = calculations.rotate_angles(return_array[-1]['float'], 360, 0)
+            return_array, mean = calculations.rotate_angles(return_array[-1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs= calculations.get_filament_outliers(return_array, mean, 30, 0.25)
             print(mean)
             print(return_array)
@@ -95,7 +157,7 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array, mean = calculations.rotate_angles(return_array[0]['float'], 360, 0)
+            return_array, mean = calculations.rotate_angles(return_array[0]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs= calculations.get_filament_outliers(return_array, mean, 30, 0.25)
             print(outlier)
             assert(outlier)
@@ -126,7 +188,7 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array, mean = calculations.rotate_angles(return_array[0]['float'], 360, 0)
+            return_array, mean = calculations.rotate_angles(return_array[0]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs= calculations.get_filament_outliers(return_array, 2, 30, 0.25)
             assert(np.array_equal(idx_outs, np.array([3], dtype=int)))
 
@@ -156,7 +218,7 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array, mean = calculations.rotate_angles(return_array[-1]['float'], 360, 0)
+            return_array, mean = calculations.rotate_angles(return_array[-1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array, 2, 30, 0.25)
             print(idx_outs)
             assert(np.array_equal(idx_outs, np.array([], dtype=int)))
@@ -187,7 +249,7 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array, mean = calculations.rotate_angles(return_array[0]['float'], 180, -180)
+            return_array, mean = calculations.rotate_angles(return_array[0]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array, mean, 30, 0.25)
             assert(np.round(mean, 4) == 0.6667)
 
@@ -217,7 +279,7 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array, mean = calculations.rotate_angles(return_array[-1]['float'], 180, -180)
+            return_array, mean = calculations.rotate_angles(return_array[-1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array, mean, 30, 0.25)
             assert(mean == 3)
 
@@ -247,7 +309,7 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array, mean = calculations.rotate_angles(return_array[-1]['float'], 180, -180)
+            return_array, mean = calculations.rotate_angles(return_array[-1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array, mean, 30, 0.25)
             assert(mean == 3)
 
@@ -256,7 +318,9 @@ class TestCalculations():
         def test_rotate_angles_zero_rotate_angle_odd_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-2+360, -1+360, 0, 1, 2, 3, 4], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == 1)
@@ -265,7 +329,9 @@ class TestCalculations():
         def test_rotate_angles_zero_rotate_angle_odd_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-4+360, -3+360, -2+360, -1+360, 0, 1, 2], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == -1)
@@ -274,7 +340,9 @@ class TestCalculations():
         def test_rotate_angles_zero_rotate_angle_even_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-2+360, -1+360, 0, 1, 2, 3], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == 0.5)
@@ -283,7 +351,9 @@ class TestCalculations():
         def test_rotate_angles_zero_rotate_angle_even_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-3+360, -2+360, -1+360, 0, 1, 2], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == -0.5)
@@ -292,7 +362,9 @@ class TestCalculations():
         def test_rotate_angles_zero_odd_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-4+360, -3+360, -2+360, -1+360, 0, 1, 2], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-3, -2, -1, 0, 1, 2, 3], dtype=float)))
@@ -301,7 +373,9 @@ class TestCalculations():
         def test_rotate_angles_zero_odd_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-2+360, -1+360, 0, 1, 2, 3, 4], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-3, -2, -1, 0, 1, 2, 3], dtype=float)))
@@ -310,7 +384,9 @@ class TestCalculations():
         def test_rotate_angles_zero_even_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-2+360, -1+360, 0, 1, 2, 3], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5], dtype=float)))
@@ -319,7 +395,9 @@ class TestCalculations():
         def test_rotate_angles_zero_even_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-3+360, -2+360, -1+360, 0, 1, 2], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5], dtype=float)))
@@ -328,7 +406,9 @@ class TestCalculations():
         def test_rotate_angles_180_rotate_angle_odd_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-178+360, -179+360, 180, 179, 178, 177, 176], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == 179)
@@ -337,16 +417,20 @@ class TestCalculations():
         def test_rotate_angles_180_rotate_angle_odd_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-176+360, -177+360, -178+360, -179+360, 180, 179, 178], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
-            assert(rotate_angle == -179.00000000000003)
+            assert(np.round(rotate_angle, 1) == -179.0)
 
 
         def test_rotate_angles_180_rotate_angle_even_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-178+360, -179+360, 180, 179, 178, 177], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == 179.5)
@@ -355,7 +439,9 @@ class TestCalculations():
         def test_rotate_angles_180_rotate_angle_even_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-177+360, -178+360, -179+360, 180, 179, 178], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == -179.5)
@@ -364,7 +450,9 @@ class TestCalculations():
         def test_rotate_angles_180_odd_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-178+360, -179+360, 180, 179, 178, 177, 176], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([3, 2, 1, 0, -1, -2, -3], dtype=float)))
@@ -373,7 +461,9 @@ class TestCalculations():
         def test_rotate_angles_180_odd_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-176+360, -177+360, -178+360, -179+360, 180, 179, 178], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([3, 2, 1, 0, -1, -2, -3], dtype=float)))
@@ -382,7 +472,9 @@ class TestCalculations():
         def test_rotate_angles_180_even_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-178+360, -179+360, 180, 179, 178, 177], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([2.5, 1.5, 0.5, -0.5, -1.5, -2.5], dtype=float)))
@@ -391,7 +483,9 @@ class TestCalculations():
         def test_rotate_angles_180_even_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-177+360, -178+360, -179+360, 180, 179, 178], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([2.5, 1.5, 0.5, -0.5, -1.5, -2.5], dtype=float)))
@@ -400,7 +494,9 @@ class TestCalculations():
         def test_rotate_angle_not_converge_initialy_odd(self):
             """Test the rotation of the center of angles with random numbers"""
             output_array = np.array([-88+360, -102+360, -75+360, 141, -160+360, -35+360, 37, 44, -45+360, -6+360, 59], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-43., -57., -30., -174., -115., 10., 82., 89., 0., 39., 104.], dtype=float)))
@@ -409,7 +505,9 @@ class TestCalculations():
         def test_rotate_angle_not_converge_initialy_even(self):
             """Test the rotation of the center of angles with random numbers"""
             output_array = np.array([-88+360, -102+360, -75+360, 141, -160+360, -35+360, 37, 44, -45+360, -6+360], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 360, 0)
+            print(output_array)
+            output_array = calculations.subtract_and_adjust_angles(output_array, 0, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-28., -42., -15., -159., -100., 25., 97., 104., 15., 54.])))
@@ -419,7 +517,7 @@ class TestCalculations():
         def test_rotate_angles_zero_rotate_angle_odd_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-2, -1, 0, 1, 2, 3, 4], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == 1)
@@ -428,7 +526,7 @@ class TestCalculations():
         def test_rotate_angles_zero_rotate_angle_odd_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-4, -3, -2, -1, 0, 1, 2], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == -1)
@@ -437,7 +535,7 @@ class TestCalculations():
         def test_rotate_angles_zero_rotate_angle_even_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-2, -1, 0, 1, 2, 3], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == 0.5)
@@ -446,7 +544,7 @@ class TestCalculations():
         def test_rotate_angles_zero_rotate_angle_even_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-3, -2, -1, 0, 1, 2], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == -0.5)
@@ -455,7 +553,7 @@ class TestCalculations():
         def test_rotate_angles_zero_odd_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-4, -3, -2, -1, 0, 1, 2], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-3, -2, -1, 0, 1, 2, 3], dtype=float)))
@@ -464,7 +562,7 @@ class TestCalculations():
         def test_rotate_angles_zero_odd_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-2, -1, 0, 1, 2, 3, 4], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-3, -2, -1, 0, 1, 2, 3], dtype=float)))
@@ -473,7 +571,7 @@ class TestCalculations():
         def test_rotate_angles_zero_even_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-2, -1, 0, 1, 2, 3], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5], dtype=float)))
@@ -482,7 +580,7 @@ class TestCalculations():
         def test_rotate_angles_zero_even_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-3, -2, -1, 0, 1, 2], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5], dtype=float)))
@@ -491,7 +589,7 @@ class TestCalculations():
         def test_rotate_angles_180_rotate_angle_odd_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-178, -179, 180, 179, 178, 177, 176], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == 179)
@@ -500,16 +598,16 @@ class TestCalculations():
         def test_rotate_angles_180_rotate_angle_odd_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-176, -177, -178, -179, 180, 179, 178], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
-            assert(rotate_angle == -179.00000000000003)
+            assert(np.round(rotate_angle, 1) == -179.0)
 
 
         def test_rotate_angles_180_rotate_angle_even_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-178, -179, 180, 179, 178, 177], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == 179.5)
@@ -518,7 +616,7 @@ class TestCalculations():
         def test_rotate_angles_180_rotate_angle_even_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-177, -178, -179, 180, 179, 178], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(rotate_angle == -179.5)
@@ -527,7 +625,7 @@ class TestCalculations():
         def test_rotate_angles_180_odd_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-178, -179, 180, 179, 178, 177, 176], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([3, 2, 1, 0, -1, -2, -3], dtype=float)))
@@ -536,7 +634,7 @@ class TestCalculations():
         def test_rotate_angles_180_odd_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-176, -177, -178, -179, 180, 179, 178], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([3, 2, 1, 0, -1, -2, -3], dtype=float)))
@@ -545,7 +643,7 @@ class TestCalculations():
         def test_rotate_angles_180_even_right(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-178, -179, 180, 179, 178, 177], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([2.5, 1.5, 0.5, -0.5, -1.5, -2.5], dtype=float)))
@@ -554,7 +652,7 @@ class TestCalculations():
         def test_rotate_angles_180_even_left(self):
             """Test the rotation of the center of angles"""
             output_array = np.array([-177, -178, -179, 180, 179, 178], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([2.5, 1.5, 0.5, -0.5, -1.5, -2.5], dtype=float)))
@@ -563,7 +661,7 @@ class TestCalculations():
         def test_rotate_angle_not_converge_initialy_odd(self):
             """Test the rotation of the center of angles with random numbers"""
             output_array = np.array([-88, -102, -75, 141, -160, -35, 37, 44, -45, -6, 59], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-43., -57., -30., -174., -115., 10., 82., 89., 0., 39., 104.], dtype=float)))
@@ -572,7 +670,7 @@ class TestCalculations():
         def test_rotate_angle_not_converge_initialy_even(self):
             """Test the rotation of the center of angles with random numbers"""
             output_array = np.array([-88, -102, -75, 141, -160, -35, 37, 44, -45, -6], dtype=float)
-            return_array, rotate_angle = calculations.rotate_angles(output_array, 180, -180)
+            return_array, rotate_angle = calculations.rotate_angles(output_array)
             print(output_array)
             print(return_array)
             assert(np.array_equal(return_array, np.array([-28., -42., -15., -159., -100., 25., 97., 104., 15., 54.])))
@@ -944,9 +1042,9 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 360, 0)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 360, 0)
+            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean)
             print(mean_array)
             assert(len(mean_array) == 10)
 
@@ -979,11 +1077,11 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 360, 0)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 360, 0)
+            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean)
             print(mean_array)
-            assert(np.round(mean_array[0], 2) == 1.23)
+            assert(np.round(mean_array[0], 2) == 0.13)
 
 
         def test_calculate_mean_prior_one_outlier_length(self):
@@ -1014,9 +1112,9 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 360, 0)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 360, 0)
+            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean)
             print(mean_array)
             assert(len(mean_array) == 10)
 
@@ -1049,11 +1147,11 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 360, 0)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 360, 0)
+            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean)
             print(mean_array)
-            assert(np.round(mean_array[0], 2) == 1.24)
+            assert(np.round(mean_array[0], 2) == 0.12)
 
 
         def test_calculate_mean_prior_small_mean(self):
@@ -1081,10 +1179,13 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[-1]['float'], 360, 0)
+            print(return_array)
+            return_array2, mean = calculations.rotate_angles(return_array[-1]['float'])
+            print(return_array2)
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean, 360, 0)
-            assert(mean_array[0] == mean)
+            print(data_rotated, mean)
+            mean_array = calculations.calculate_mean_prior(data_rotated, 3, idx_ins, idx_outs, mean)
+            assert(mean_array[0] == 0)
 
 
         def test_calculate_mean_prior_180_mean(self):
@@ -1111,11 +1212,11 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 360, 0)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean, 360, 0)
+            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean)
             print(mean_array)
-            assert(np.round(mean_array[0], 3) == 182.0)
+            assert(np.round(mean_array[0], 2) == 0.83)
 
 
         def test_calculate_mean_prior_small_180_mean(self):
@@ -1143,11 +1244,11 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[-1]['float'], 360, 0)
+            return_array2, mean = calculations.rotate_angles(return_array[-1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean, 360, 0)
+            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean)
             print(mean)
-            assert(mean_array[0] == mean)
+            assert(mean_array[0] == 0)
 
 
     class TestCalculateMeanPriorRelion():
@@ -1179,9 +1280,9 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 180, -180)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 180, -180)
+            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean)
             print(mean_array)
             assert(len(mean_array) == 10)
 
@@ -1214,11 +1315,11 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 180, -180)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 180, -180)
+            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean)
             print(mean_array)
-            assert(np.round(mean_array[0], 2) == 1.03)
+            assert(np.round(mean_array[0], 2) == 0.13)
 
 
         def test_calculate_mean_prior_one_outlier_length(self):
@@ -1249,9 +1350,9 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 180, -180)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 180, -180)
+            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean)
             print(mean_array)
             assert(len(mean_array) == 10)
 
@@ -1284,11 +1385,11 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 180, -180)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean, 180, -180)
+            mean_array = calculations.calculate_mean_prior(return_array2, 5, idx_ins, idx_outs, mean)
             print(mean_array)
-            assert(np.round(mean_array[0], 2) == 1.02)
+            assert(np.round(mean_array[0], 2) == 0.12)
 
 
         def test_calculate_mean_prior_small_mean(self):
@@ -1316,10 +1417,10 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[-1]['float'], 180, -180)
+            return_array2, mean = calculations.rotate_angles(return_array[-1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean, 180, -180)
-            assert(mean_array[0] == mean)
+            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean)
+            assert(mean_array[0] == 0)
 
 
         def test_calculate_mean_prior_180_mean(self):
@@ -1346,11 +1447,11 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[1]['float'], 180, -180)
+            return_array2, mean = calculations.rotate_angles(return_array[1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean, 180, -180)
+            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean)
             print(mean_array)
-            assert(np.round(mean_array[0], 3) == -177.333)
+            assert(np.round(mean_array[0], 3) == 0.833)
 
 
         def test_calculate_mean_prior_small_180_mean(self):
@@ -1378,10 +1479,10 @@ class TestCalculations():
                     ]
                 )
             return_array = calculations.get_filaments(output_array, '_rlnHelicalTubeID')
-            return_array2, mean = calculations.rotate_angles(return_array[-1]['float'], 180, -180)
+            return_array2, mean = calculations.rotate_angles(return_array[-1]['float'])
             outlier, data_rotated, mean, idx_ins, idx_outs = calculations.get_filament_outliers(return_array2, mean, 30, 0.25)
-            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean, 180, -180)
+            mean_array = calculations.calculate_mean_prior(return_array2, 3, idx_ins, idx_outs, mean)
             print(mean)
-            assert(mean_array[0] == mean)
+            assert(mean_array[0] == 0)
 
 
