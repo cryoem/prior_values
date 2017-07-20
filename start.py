@@ -6,6 +6,7 @@ import calculations
 import read_sphire
 import read_star
 import write_star
+import write_sphire
 
 
 def combine_arrays(array_one, array_two):
@@ -70,14 +71,14 @@ def main(file_name, tolerance, tolerance_filament, window_size, plot=False, typ=
         id_name = 'filament'
         particle_name = 'data_n'
         micrograph_name = 'ptcl_source_image'
-        angle_name = ['phi', 'theta']
-        angle_name_new = ['phi_prior', 'theta_prior']
+        angle_name = ['psi', 'theta']
+        angle_name_new = ['psi_prior', 'theta_prior']
+
+        output_names = list(parameter.dtype.names)
 
     elif typ == 'relion':
-        #angle_max = 180
-        #angle_min = -180
-        angle_max = 360
-        angle_min = 0
+        angle_max = 180
+        angle_min = -180
 
         array, header, path = read_star.import_star_file(file_name)
 
@@ -86,6 +87,8 @@ def main(file_name, tolerance, tolerance_filament, window_size, plot=False, typ=
         particle_name = '_rlnImageName'
         angle_name = ['_rlnAnglePsi', '_rlnAngleTilt']
         angle_name_new = ['_rlnAnglePsiPrior', '_rlnAngleTiltPrior']
+
+        output_names = list(array.dtype.names) + angle_name_new
 
     else:
         print('Unreachable code!')
@@ -114,7 +117,7 @@ def main(file_name, tolerance, tolerance_filament, window_size, plot=False, typ=
         data_rotated_name = 'data_rotated_{0}'.format(angle)
         for idx, filament in enumerate(filament_array):
             if do_plot:
-                if idx % 10000 == 0:
+                if idx % 1 == 0:
                     plot = True
                 else:
                     plot = False
@@ -157,9 +160,22 @@ def main(file_name, tolerance, tolerance_filament, window_size, plot=False, typ=
             else:
                 new_array = np.append(new_array, filament)
 
-    # Sort the array back to the original order
-    new_array = np.sort(array, order=array_order)
+        array = add_column(array, new_array[angle_new], angle_new)
+        if typ == 'sphire':
+            array = swap_columns(array, angle, angle_new)
+        else:
+            pass
 
+    # Sort the array back to the original order
+    array = np.sort(array, order=array_order)
+
+    if typ == 'relion':
+        header_string = write_star.create_header_string(output_names)
+        write_star.write_star_file(array[output_names], header_string, 'TEST.star')
+    elif typ == 'sphire':
+        write_sphire.write_params_file(array[output_names], 'TEST.txt')
+    else:
+        pass
 
 
 if __name__ == '__main__':

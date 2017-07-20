@@ -77,7 +77,10 @@ def rotate_angles(data_rotated, plot=False):
 
     while iteration < 100:
         data_rotated = subtract_and_adjust_angles(data_rotated, current_median, 180, -180)
-        median = np.median(data_rotated)
+        if len(data_rotated) % 2:
+            median = np.median(data_rotated)
+        else:
+            median = np.sort(data_rotated)[len(data_rotated)//2]
         rotate_angle = subtract_and_adjust_angles(rotate_angle, -median, 180, -180)
         if iteration == 0 and plot:
             plot_polar('current_median_{0}'.format(iteration), data_rotated, current_median, 180, -180, mean=median, old_mean=0)
