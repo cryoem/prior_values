@@ -191,6 +191,7 @@ def find_tolerance_outliers(input_array, tolerance):
     return inside_tolerance[0], outside_tolerance[0]
 
 
+index_fit = 0
 def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside_tolerance_idx, plot=False):
     """Calculate running mean of the filament array"""
 
@@ -240,6 +241,7 @@ def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside
             mean_array[idx] = slope * idx + intercept
 
         if plot:
+            global index_fit
             plt.plot(x_values_fit, mean_for_fit, 'x', label='running averages')
             plt.plot(range(len(input_array)), input_array, 'o', label='data')
             x = np.linspace(0, len(input_array)-1, 10000)
@@ -248,8 +250,10 @@ def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside
             plt.legend(loc='best')
             plt.xlabel('Particle helix id')
             plt.ylabel('Relative angle / degree')
-            plt.savefig('pics/fit.png')
+            plt.grid()
+            plt.savefig('pics/fit_{0}.png'.format(index_fit))
             plt.clf()
+            index_fit += 1
 
     return mean_array
 
