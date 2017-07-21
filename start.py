@@ -54,8 +54,11 @@ def create_substack(array, indices):
 
     return new_array
 
-def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_size, plot=False, typ='sphire', params=None, index=None):
+def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_size, plot=False, typ='sphire', params=None, index=None, output_dir=None):
     """Start calculation"""
+
+    if output_dir is None:
+        output_dir = '.'
 
     # Check angle range, import arrays
     if typ == 'sphire':
@@ -173,7 +176,7 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
         header_string = write_star.create_header_string(output_names)
         write_star.write_star_file(array[output_names], header_string, 'TEST.star')
     elif typ == 'sphire':
-        write_sphire.write_params_file(array[output_names], 'TEST.txt')
+        write_sphire.write_params_file(array[output_names], '{0}/TEST.txt'.format(output_dir))
     else:
         pass
 
