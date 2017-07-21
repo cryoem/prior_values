@@ -54,7 +54,7 @@ def create_substack(array, indices):
 
     return new_array
 
-def main(file_name, tolerance, tolerance_filament, window_size, plot=False, typ='sphire', params=None):
+def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_size, plot=False, typ='sphire', params=None, index=None):
     """Start calculation"""
 
     # Check angle range, import arrays
@@ -63,8 +63,8 @@ def main(file_name, tolerance, tolerance_filament, window_size, plot=False, typ=
         angle_min = 0
 
         original_stack = read_sphire.get_sphire_stack(file_name)
-        parameter = read_sphire.get_sphire_file('params', 'params.txt')
-        indices = read_sphire.get_sphire_file('index', 'index.txt')
+        parameter = read_sphire.get_sphire_file('params', params)
+        indices = read_sphire.get_sphire_file('index', index)
         substack = create_substack(original_stack, indices)
         array = combine_arrays(substack, parameter)
 
@@ -113,7 +113,7 @@ def main(file_name, tolerance, tolerance_filament, window_size, plot=False, typ=
     else:
         do_plot = False
 
-    for angle, angle_new in zip(angle_name, angle_name_new):
+    for angle, angle_new, tolerance in zip(angle_name, angle_name_new, [tolerance_psi, tolerance_theta]):
         data_rotated_name = 'data_rotated_{0}'.format(angle)
         for idx, filament in enumerate(filament_array):
             if do_plot:
