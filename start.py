@@ -120,22 +120,23 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
         data_rotated_name = 'data_rotated_{0}'.format(angle)
         for idx, filament in enumerate(filament_array):
             if do_plot:
-                if idx % 1 == 0:
+                if idx % 1000 == 0:
                     plot = True
                 else:
                     plot = False
             if plot:
-                calculations.plot_polar('raw_data', filament[data_rotated_name], 0, angle_max, 0)
+                calculations.plot_polar('raw_data', filament[data_rotated_name], 0, angle_max, 0, output=output_dir)
 
             filament[data_rotated_name] = calculations.subtract_and_adjust_angles(filament[data_rotated_name], 0, 180, -180)
-            filament[data_rotated_name], rotate_angle = calculations.rotate_angles(filament[data_rotated_name], plot)
+            filament[data_rotated_name], rotate_angle = calculations.rotate_angles(filament[data_rotated_name], plot, output=output_dir)
 
             is_outlier, filament[data_rotated_name], rotate_angle, inside_tol_idx, outside_tol_idx = calculations.get_filament_outliers(
                 data_rotated=filament[data_rotated_name],
                 rotate_angle=rotate_angle,
                 tolerance=tolerance,
                 tolerance_filament=tolerance_filament,
-                plot=plot
+                plot=plot,
+                output=output_dir
                 )
 
             mean_array = calculations.calculate_mean_prior(
@@ -143,18 +144,19 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
                 window_size=window_size,
                 inside_tolerance_idx=inside_tol_idx,
                 outside_tolerance_idx=outside_tol_idx,
-                plot=plot
+                plot=plot,
+                output=output_dir
                 )
 
             if plot:
-                calculations.plot_polar('mean_array', mean_array, rotate_angle, 180, -180)
+                calculations.plot_polar('mean_array', mean_array, rotate_angle, 180, -180, output=output_dir)
 
             mean_array = calculations.subtract_and_adjust_angles(
                 mean_array, -rotate_angle, angle_max, angle_min
                 )
 
             if plot:
-                calculations.plot_polar('mean_array', mean_array, 0, angle_max, angle_min)
+                calculations.plot_polar('mean_array', mean_array, 0, angle_max, angle_min, output=output_dir)
 
             filament = add_column(filament, mean_array, angle_new)
 
@@ -172,9 +174,11 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
     # Sort the array back to the original order
     array = np.sort(array, order=array_order)
 
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
     if typ == 'relion':
         header_string = write_star.create_header_string(output_names)
-        write_star.write_star_file(array[output_names], header_string, 'TEST.star')
+        write_star.write_star_file(array[output_names], header_string, '{0}/TEST.star'.format(output_dir))
     elif typ == 'sphire':
         write_sphire.write_params_file(array, output_names, '{0}/TEST.txt'.format(output_dir))
     else:
@@ -188,6 +192,7 @@ if __name__ == '__main__':
         typ = 'relion'
         plot = True
     else:
+        plot = True
         name = 'bdb:stack_small'
         typ = 'sphire'
 
@@ -196,6 +201,7 @@ if __name__ == '__main__':
     tolerance = 30
     tolerance_filament = 0.2
     window_size = 3
+    output='juhuuuu'
 
     main(
         file_name=name,
@@ -206,5 +212,6 @@ if __name__ == '__main__':
         typ=typ,
         plot=plot,
         index=index,
-        params=params
+        params=params,
+        output_dir=output
         )

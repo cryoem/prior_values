@@ -42,18 +42,18 @@ def get_local_mean(input_array, rotate_angle, tolerance):
     return data_rotated, mean, len(outside_tolerance)
 
 
-def rotate_angles(data_rotated, plot=False):
+def rotate_angles(data_rotated, plot=False, output='.'):
     """Rotate angles to match 0 with the median"""
     if plot:
-        plot_polar('raw_data', data_rotated, 0, 180, -180)
+        plot_polar('raw_data', data_rotated, 0, 180, -180, output=output)
 
     diff_from_zero = np.median(np.abs(data_rotated))
     nr_positive = len(data_rotated[data_rotated >= 0])
     nr_negative = len(data_rotated) - nr_positive
     if plot:
-        plot_polar('absolut_values', np.abs(data_rotated), 0, 180, -180)
-        plot_polar('absolut_values_diff_from_zero', np.abs(data_rotated), 0, 180, -180, mean=diff_from_zero)
-        plot_polar('absolut_values_diff_from_zero', data_rotated, 0, 180, -180, mean=diff_from_zero)
+        plot_polar('absolut_values', np.abs(data_rotated), 0, 180, -180, output=output)
+        plot_polar('absolut_values_diff_from_zero', np.abs(data_rotated), 0, 180, -180, mean=diff_from_zero, output=output)
+        plot_polar('absolut_values_diff_from_zero', data_rotated, 0, 180, -180, mean=diff_from_zero, output=output)
 
     if diff_from_zero > 90:
         for idx in range(len(data_rotated)):
@@ -73,7 +73,7 @@ def rotate_angles(data_rotated, plot=False):
     rotate_angle = current_median
     current_median_old = current_median
     if plot:
-        plot_polar('current_median', data_rotated, 0, 360, 0, mean=rotate_angle)
+        plot_polar('current_median', data_rotated, 0, 360, 0, mean=rotate_angle, output=output)
 
     while iteration < 100:
         data_rotated = subtract_and_adjust_angles(data_rotated, current_median, 180, -180)
@@ -83,7 +83,7 @@ def rotate_angles(data_rotated, plot=False):
             median = np.sort(data_rotated)[len(data_rotated)//2]
         rotate_angle = subtract_and_adjust_angles(rotate_angle, -median, 180, -180)
         if iteration == 0 and plot:
-            plot_polar('current_median_{0}'.format(iteration), data_rotated, current_median, 180, -180, mean=median, old_mean=0)
+            plot_polar('current_median_{0}'.format(iteration), data_rotated, current_median, 180, -180, mean=median, old_mean=0, output=output)
 
         if median == 0:
             break
@@ -95,7 +95,7 @@ def rotate_angles(data_rotated, plot=False):
 
         iteration += 1
     if plot:
-        plot_polar('rotated_data_median', data_rotated, rotate_angle, 180, -180, old_mean=0)
+        plot_polar('rotated_data_median', data_rotated, rotate_angle, 180, -180, old_mean=0, output=output)
 
     return data_rotated, rotate_angle
 
@@ -125,11 +125,11 @@ def subtract_and_adjust_angles(input_data, value, angle_max, angle_min):
     return data_subtracted
 
 
-def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament, plot=False):
+def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament, plot=False, output='.'):
     """Get filament outliers based on tolerance"""
 
     if plot:
-        plot_polar('rotated_data_for_mean', data_rotated, rotate_angle, 180, -180, old_mean=0, tol=tolerance, mean=0)
+        plot_polar('rotated_data_for_mean', data_rotated, rotate_angle, 180, -180, old_mean=0, tol=tolerance, mean=0, output=output)
         plot_rotate_angle = rotate_angle
     data_rotated, rotate_angle, nr_outliers = get_local_mean(
         data_rotated,
@@ -153,7 +153,7 @@ def get_filament_outliers(data_rotated, rotate_angle, tolerance, tolerance_filam
         iteration += 1
 
     if plot:
-        plot_polar('rotated_data_mean', data_rotated, rotate_angle, 180, -180, mean=0, tol=tolerance, old_mean=plot_rotate_angle-rotate_angle_old)
+        plot_polar('rotated_data_mean', data_rotated, rotate_angle, 180, -180, mean=0, tol=tolerance, old_mean=plot_rotate_angle-rotate_angle_old, output=output)
     inside_tolerance_idx, outside_tolerance_idx = find_tolerance_outliers(
         data_rotated, tolerance
         )
@@ -195,7 +195,7 @@ def find_tolerance_outliers(input_array, tolerance):
 
 
 index_fit = 0
-def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside_tolerance_idx, plot=False):
+def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside_tolerance_idx, plot=False, output='.'):
     """Calculate running mean of the filament array"""
 
     mean_array = np.empty(len(input_array))
@@ -254,14 +254,14 @@ def calculate_mean_prior(input_array, window_size, inside_tolerance_idx, outside
             plt.xlabel('Particle helix id')
             plt.ylabel('Relative angle / degree')
             plt.grid()
-            plt.savefig('pics/fit_{0}.png'.format(index_fit))
+            plt.savefig('{0}/pics/fit_{1}.png'.format(output, index_fit))
             plt.clf()
             index_fit += 1
 
     return mean_array
 
 index_plot = 0
-def plot_polar(name, array, angle_rotation, angle_max, angle_min, mean=None, tol=None, label=None, old_mean=None):
+def plot_polar(name, array, angle_rotation, angle_max, angle_min, mean=None, tol=None, label=None, old_mean=None, output='.'):
     """Do a polar plot"""
     global index_plot
     # radar green, solid grid lines
@@ -307,8 +307,11 @@ def plot_polar(name, array, angle_rotation, angle_max, angle_min, mean=None, tol
 
     # Beautify
     #plt.title('{0} {1}'.format(np.max(array), np.min(array)))
-    if not os.path.exists('pics'):
-        os.mkdir('pics')
-    plt.savefig('pics/{0:02d}_{1}.png'.format(index_plot, name))
+    if not os.path.exists(output):
+        os.mkdir(output)
+    out_dir = '{0}/pics'.format(output)
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    plt.savefig('{0}/{1:02d}_{2}.png'.format(out_dir, index_plot, name))
     index_plot += 1
     plt.close(fig)
