@@ -1,5 +1,6 @@
 import sys
 sys.path.append('modules')
+sys.path.append('/work1/home/stabrin/Jasp_cLys_ADP/prior_values/modules')
 import numpy as np
 import os as os
 import calculations
