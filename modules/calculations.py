@@ -307,6 +307,8 @@ def plot_polar(name, array, angle_rotation, angle_max, angle_min, mean=None, tol
 
     # Beautify
     #plt.title('{0} {1}'.format(np.max(array), np.min(array)))
+    if not os.path.exists('pics'):
+        os.mkdir('pics')
     plt.savefig('pics/{0:02d}_{1}.png'.format(index_plot, name))
     index_plot += 1
     plt.close(fig)
