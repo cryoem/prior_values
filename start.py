@@ -176,7 +176,7 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
         header_string = write_star.create_header_string(output_names)
         write_star.write_star_file(array[output_names], header_string, 'TEST.star')
     elif typ == 'sphire':
-        write_sphire.write_params_file(array[output_names], '{0}/TEST.txt'.format(output_dir))
+        write_sphire.write_params_file(array, output_names, '{0}/TEST.txt'.format(output_dir))
     else:
         pass
 
@@ -191,15 +191,20 @@ if __name__ == '__main__':
         name = 'bdb:stack_small'
         typ = 'sphire'
 
+    index='index.txt'
+    params='params.txt'
     tolerance = 30
     tolerance_filament = 0.2
     window_size = 3
 
     main(
         file_name=name,
-        tolerance=tolerance,
+        tolerance_psi=tolerance,
+        tolerance_theta=tolerance/2,
         tolerance_filament=tolerance_filament,
         window_size=window_size,
         typ=typ,
-        plot=plot
+        plot=plot,
+        index=index,
+        params=params
         )
