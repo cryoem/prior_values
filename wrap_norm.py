@@ -1,6 +1,5 @@
 import sys
 sys.path.append('modules')
-sys.path.append('/work1/home/stabrin/Jasp_cLys_ADP/prior_values/modules')
 import numpy as np
 import os as os
 import calculations
@@ -8,6 +7,23 @@ import read_sphire
 import read_star
 import write_star
 import write_sphire
+
+
+def wrapped_distribution(array):
+    """Calculate a wrapped normal distribution"""
+    nr_data = len(array)
+    summe = np.sum(np.exp(np.radians(array)*1j))
+    complex_mean = summe/float(nr_data)
+    complex_angle = np.angle(complex_mean)
+
+    R2 = np.real(complex_mean * np.conj(complex_mean))
+    R2_e = (nr_data/float(nr_data-1)) * (R2 - 1/float(nr_data))
+    std = np.sqrt(np.log(1/float(R2)))
+
+    mean_list = [np.degrees(complex_angle) for entry in range(nr_data)]
+    std_list = [np.degrees(std) for entry in range(nr_data)]
+
+    return mean_list, std_list
 
 
 def combine_arrays(array_one, array_two):
@@ -33,7 +49,7 @@ def add_column(array_ori, array_new, new_name):
 
     for name in array_ori.dtype.names:
         array_combined[name] = array_ori[name]
-    array_combined[new_name] = np.array(array_new)
+    array_combined[new_name] = array_new
     return array_combined
 
 
@@ -75,10 +91,12 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
         id_name = 'filament'
         particle_name = 'data_n'
         micrograph_name = 'ptcl_source_image'
-        angle_name = ['psi', 'theta']
-        angle_name_new = ['psi_prior', 'theta_prior']
+        angle_name = ['theta', 'psi']
+        angle_name_new = [['theta_prior', 'theta_std'], ['psi_prior', 'psi_std']]
 
         output_names = list(parameter.dtype.names)
+        for entry in angle_name_new:
+            output_names += entry
 
     elif typ == 'relion':
         angle_max = 180
@@ -89,91 +107,59 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
         id_name = '_rlnHelicalTubeID'
         micrograph_name = '_rlnMicrographName'
         particle_name = '_rlnImageName'
-        angle_name = ['_rlnAnglePsi', '_rlnAngleTilt']
-        angle_name_new = ['_rlnAnglePsiPrior', '_rlnAngleTiltPrior']
+        angle_name = ['_rlnAngleTilt', '_rlnAnglePsi']
+        angle_name_new = [['_rlnAngleTiltPrior', '_rlnAngleTiltStd'], ['_rlnAnglePsiPrior', '_rlnAnglePsiStd']]
 
-        output_names = list(array.dtype.names) + angle_name_new
+        output_names = list(array.dtype.names)
+        for entry in angle_name_new:
+            output_names.append(entry[0])
 
     else:
         print('Unreachable code!')
         return 'Unreachable code!'
 
-    # Add the particle number to the array
-    array_order = 'particle_order'
-    order_numbers = np.arange(len(array))
-    array = add_column(array, order_numbers, array_order)
-    # Sort the array
+    # Add the particle number to the array and sort it by filament and particle
+    order_idx = 'particle_order'
+    ordered_numbers = np.arange(len(array))
+    array = add_column(array, ordered_numbers, order_idx)
     array = np.sort(array, order=[micrograph_name, id_name, particle_name])
 
-    for angle in angle_name:
-        # Add rotated data column to the array
-        data_rotated_name = 'data_rotated_{0}'.format(angle)
-        array = add_column(array, array[angle], data_rotated_name)
-
     filament_array = calculations.get_filaments(array, id_name)
-    array_modified = None
     if plot:
         do_plot = True
     else:
         do_plot = False
 
     for angle, angle_new, tolerance in zip(angle_name, angle_name_new, [tolerance_psi, tolerance_theta]):
-        data_rotated_name = 'data_rotated_{0}'.format(angle)
         for idx, filament in enumerate(filament_array):
             if do_plot:
                 if idx % 1000 == 0:
                     plot = True
                 else:
                     plot = False
-            if plot:
-                calculations.plot_polar('raw_data', filament[data_rotated_name], 0, angle_max, 0, output=output_dir)
 
-            filament[data_rotated_name] = calculations.subtract_and_adjust_angles(filament[data_rotated_name], 0, 180, -180)
-            filament[data_rotated_name], rotate_angle = calculations.rotate_angles(filament[data_rotated_name], plot, output=output_dir)
-
-            is_outlier, filament[data_rotated_name], rotate_angle, inside_tol_idx, outside_tol_idx = calculations.get_filament_outliers(
-                data_rotated=filament[data_rotated_name],
-                rotate_angle=rotate_angle,
-                tolerance=tolerance,
-                tolerance_filament=tolerance_filament,
-                plot=plot,
-                output=output_dir
-                )
-
-            mean_array = calculations.calculate_mean_prior(
-                input_array=filament[data_rotated_name],
-                window_size=window_size,
-                inside_tolerance_idx=inside_tol_idx,
-                outside_tolerance_idx=outside_tol_idx,
-                plot=plot,
-                output=output_dir
-                )
-
-            if plot:
-                calculations.plot_polar('mean_array', mean_array, rotate_angle, 180, -180, output=output_dir)
-
-            mean_array = calculations.subtract_and_adjust_angles(
-                mean_array, -rotate_angle, angle_max, angle_min
-                )
-
-            if plot:
-                calculations.plot_polar('mean_array', mean_array, 0, angle_max, angle_min, output=output_dir)
-
-            filament = add_column(filament, mean_array, angle_new)
+            mean_list, std_list = wrapped_distribution(filament[angle])
+            for name, entry in zip(angle_new, [mean_list, std_list]):
+                filament = add_column(filament, entry, name)
 
             if idx == 0:
                 new_array = filament
             else:
                 new_array = np.append(new_array, filament)
 
-        array = add_column(array, new_array[angle_new], angle_new)
-        if typ == 'sphire':
-            array = swap_columns(array, angle, angle_new)
-        else:
-            pass
+
+
+            if plot:
+                calculations.plot_polar('raw_data', filament[angle], 0, angle_max, 0, output=output_dir)
+                calculations.plot_polar('mean', filament[angle], 0, angle_max, 0, mean=np.degrees(mean_list[0]), output=output_dir)
+                calculations.plot_polar('sigma1', filament[angle], 0, angle_max, 0, mean=np.degrees(mean_list[0]), output=output_dir, tol=np.degrees(std_list[0]))
+                calculations.plot_polar('sigma2', filament[angle], 0, angle_max, 0, mean=np.degrees(mean_list[0]), output=output_dir, tol=2*np.degrees(std_list[0]))
+
+        for idx, name in enumerate(angle_new):
+            array = add_column(array, new_array[name], name)
 
     # Sort the array back to the original order
-    array = np.sort(array, order=array_order)
+    array = np.sort(array, order=order_idx)
 
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
