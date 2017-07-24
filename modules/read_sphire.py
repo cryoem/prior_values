@@ -2,6 +2,25 @@ import sparx as sp
 import numpy as np
 
 
+def get_sphire_stack_new(stack_path):
+    """Import the sphire bdb stack to numpy array"""
+    import_list = ['source_n', 'data_n', 'ptcl_source_image', 'filament']
+    data_types = ['<i8', '<i8', '|S200', '|S200']
+
+    dtype_list = []
+    imported_list = []
+    for name, typ in zip(import_list, data_types):
+        dtype_list.append((name, typ))
+        data = sp.EMUtil.get_all_attributes(stack_path, name)
+        imported_list.append(data)
+
+    data_array = np.empty(len(imported_list[0]), dtype=dtype_list)
+    for idx, name in enumerate(import_list):
+        data_array[name] = imported_list[idx]
+
+    return data_array
+
+
 def get_sphire_stack(stack_path):
     """Import the sphire bdb stack to numpy array"""
     image_data = sp.EMData()
