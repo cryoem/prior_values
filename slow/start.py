@@ -3,12 +3,11 @@ sys.path.append('modules')
 sys.path.append('/work1/home/stabrin/Jasp_cLys_ADP/prior_values/modules')
 import numpy as np
 import os as os
-import time
-#import calculations
+import calculations
 import read_sphire
-#import read_star
-#import write_star
-#import write_sphire
+import read_star
+import write_star
+import write_sphire
 
 
 def combine_arrays(array_one, array_two):
@@ -20,18 +19,41 @@ def combine_arrays(array_one, array_two):
     array_combined = np.empty(len(array_one), dtype=dtype_new)
 
     for name in array_one.dtype.names:
-        array_combined[name] = array_one[name]
+        array_combined[name] = np.copy(array_one[name])
     for name in array_two.dtype.names:
-        array_combined[name] = array_two[name]
-
+        array_combined[name] = np.copy(array_two[name])
     return array_combined
+
+
+def add_column(array_ori, array_new, new_name):
+    """Add column to input array"""
+    dtype_new = array_ori.dtype.descr
+    dtype_new.append((new_name, '<f8'))
+    array_combined = np.empty(len(array_ori), dtype=dtype_new)
+
+    for name in array_ori.dtype.names:
+        array_combined[name] = array_ori[name]
+    array_combined[new_name] = np.array(array_new)
+    return array_combined
+
+
+def swap_columns(array, name_one, name_two):
+    """Swap two columns of the array"""
+    array = np.copy(array)
+    array_temp = np.copy(array[name_one])
+    array[name_one] = np.copy(array[name_two])
+    array[name_two] = array_temp
+    return array
 
 
 def create_substack(array, indices):
     """Create a substack of an array"""
-    new_array = array[indices]
-    return new_array
+    new_array = np.empty(len(indices), dtype=array.dtype.descr)
+    for idx, entry in enumerate(indices):
+        for name in array.dtype.names:
+            new_array[idx][name] = array[entry][name]
 
+    return new_array
 
 def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_size, plot=False, typ='sphire', params=None, index=None, output_dir=None):
     """Start calculation"""
@@ -47,17 +69,14 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
         original_stack = read_sphire.get_sphire_stack(file_name)
         parameter = read_sphire.get_sphire_file('params', params)
         indices = read_sphire.get_sphire_file('index', index)
-
         substack = create_substack(original_stack, indices)
         array = combine_arrays(substack, parameter)
 
-        stack_id, mic_name, filament_name, particle_id = \
-            original_stack.dtype.names
-
-        angle_name = [
-            ['psi', 'psi_prior', 'psi_rot'],
-            ['theta', 'theta_prior', 'theta_rot']
-            ]
+        id_name = 'filament'
+        particle_name = 'data_n'
+        micrograph_name = 'ptcl_source_image'
+        angle_name = ['psi', 'theta']
+        angle_name_new = ['psi_prior', 'theta_prior']
 
         output_names = list(parameter.dtype.names)
 
@@ -67,55 +86,40 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
 
         array, header, path = read_star.import_star_file(file_name)
 
-        filament_name = '_rlnHelicalTubeID'
-        mic_name = '_rlnMicrographName'
-        particle_id = '_rlnImageName'
-        angle_name = [
-            ['_rlnAnglePsi', '_rlnAnglePsiPrior', '_rlnAnglePsiRotated'],
-            ['_rlnAngleTilt', '_rlnAngleTiltPrior', '_rlnAngleTiltRotated']
-            ]
+        id_name = '_rlnHelicalTubeID'
+        micrograph_name = '_rlnMicrographName'
+        particle_name = '_rlnImageName'
+        angle_name = ['_rlnAnglePsi', '_rlnAngleTilt']
+        angle_name_new = ['_rlnAnglePsiPrior', '_rlnAngleTiltPrior']
 
-        output_names = list(array.dtype.names)
+        output_names = list(array.dtype.names) + angle_name_new
 
     else:
         print('Unreachable code!')
         return 'Unreachable code!'
 
-    # Add new angle names to the output dtype
-    IDX_OLD = 0
-    IDX_NEW = 1
-    IDX_ROT = 2
-    dtype_temp = array.dtype.descr
-    for angle in angle_name:
-        dtype_temp.append((angle[IDX_NEW], '<f8'))
-        dtype_temp.append((angle[IDX_ROT], '<f8'))
-        output_names.append(angle[IDX_NEW])
-
-    # Create a new combined array
-    array_temp = np.empty(len(array), dtype=dtype_temp)
-
+    # Add the particle number to the array
+    array_order = 'particle_order'
+    order_numbers = np.arange(len(array))
+    array = add_column(array, order_numbers, array_order)
     # Sort the array
-    array = np.sort(array_temp, order=[mic_name, filament_name, particle_id])
+    array = np.sort(array, order=[micrograph_name, id_name, particle_name])
 
-    # Split the array into filaments
-    filament_array = calculations.get_filaments(array[filament_name])
+    for angle in angle_name:
+        # Add rotated data column to the array
+        data_rotated_name = 'data_rotated_{0}'.format(angle)
+        array = add_column(array, array[angle], data_rotated_name)
+    print(np.shape(array))
 
+    filament_array = calculations.get_filaments(array, id_name)
     array_modified = None
     if plot:
         do_plot = True
     else:
         do_plot = False
 
-    idx_sub = 0
-    idx_rotate = 1
-    idx_outlier = 2
-    idx_mean = 3
-    idx_sub_2 = 4
-    idx_add = 5
-    idx_add_2 = 6
     for angle, angle_new, tolerance in zip(angle_name, angle_name_new, [tolerance_psi, tolerance_theta]):
         print(angle)
-        time_list = [[] for i in range(7)]
         data_rotated_name = 'data_rotated_{0}'.format(angle)
         for idx, filament in enumerate(filament_array):
             if do_plot:
@@ -131,14 +135,9 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
             if plot:
                 calculations.plot_polar('raw_data', filament[data_rotated_name], 0, angle_max, 0, output=output_dir)
 
-            start = time.time()
             filament[data_rotated_name] = calculations.subtract_and_adjust_angles(filament[data_rotated_name], 0, 180, -180)
-            time_list[idx_sub].append(time.time() - start)
-            start = time.time()
             filament[data_rotated_name], rotate_angle = calculations.rotate_angles(filament[data_rotated_name], plot, output=output_dir)
-            time_list[idx_rotate].append(time.time() - start)
 
-            start = time.time()
             is_outlier, filament[data_rotated_name], rotate_angle, inside_tol_idx, outside_tol_idx = calculations.get_filament_outliers(
                 data_rotated=filament[data_rotated_name],
                 rotate_angle=rotate_angle,
@@ -147,9 +146,7 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
                 plot=plot,
                 output=output_dir
                 )
-            time_list[idx_outlier].append(time.time() - start)
 
-            start = time.time()
             mean_array = calculations.calculate_mean_prior(
                 input_array=filament[data_rotated_name],
                 window_size=window_size,
@@ -158,33 +155,23 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
                 plot=plot,
                 output=output_dir
                 )
-            time_list[idx_mean].append(time.time() - start)
 
             if plot:
                 calculations.plot_polar('mean_array', mean_array, rotate_angle, 180, -180, output=output_dir)
 
-            start = time.time()
             mean_array = calculations.subtract_and_adjust_angles(
                 mean_array, -rotate_angle, angle_max, angle_min
                 )
-            time_list[idx_sub_2].append(time.time() - start)
 
             if plot:
                 calculations.plot_polar('mean_array', mean_array, 0, angle_max, angle_min, output=output_dir)
 
-            start = time.time()
             filament = add_column(filament, mean_array, angle_new)
-            time_list[idx_add].append(time.time() - start)
 
-            start = time.time()
             if idx == 0:
                 new_array = filament
             else:
                 new_array = np.append(new_array, filament)
-            time_list[idx_add_2].append(time.time() - start)
-
-        for idx, aaa in enumerate(time_list):
-            print(idx, sum(aaa), sum(aaa)/float(len(aaa)))
 
         array = add_column(array, new_array[angle_new], angle_new)
         if typ == 'sphire':
@@ -214,14 +201,11 @@ if __name__ == '__main__':
         plot = True
     else:
         plot = True
-        #name = 'bdb:../Particles/stack_dw'
-        name = 'bdb:stack'
+        name = 'bdb:../Particles/stack_dw'
         typ = 'sphire'
 
-    index='index.txt'
-    params='params.txt'
-    #index='../REFINE_CREATE_REF/main001/chunk_0_001.txt'
-    #params='../REFINE_CREATE_REF/main001/params-chunk_0_001.txt'
+    index='../REFINE_CREATE_REF/main001/chunk_0_001.txt'
+    params='../REFINE_CREATE_REF/main001/params-chunk_0_001.txt'
     tolerance = 30
     tolerance_filament = 0.2
     window_size = 3
