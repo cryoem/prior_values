@@ -5,8 +5,68 @@ import numpy.lib.recfunctions as nlr
 import scipy.stats as so
 import os
 from sparx import *
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+
+def get_filaments_where(array, id_name, typ, case):
+    """Calculate the size and members of each filament with numpy"""
+    if typ == 'str':
+        filament_names = np.unique(array[id_name])
+        if case == 0:
+            filament_list = []
+            for entry in filament_names:
+                indices = np.where(array[id_name] == entry)[0]
+                filament_list.append(array[indices])
+        elif case == 1:
+            filament_list = [0 for i in range(len(filament_names))]
+            for idx, entry in enumerate(filament_names):
+                indices = np.where(array[id_name] == entry)[0]
+                filament_list[idx] = array[indices]
+        elif case == 2:
+            filament_list = []
+            for idx in range(len(filament_names)):
+                indices = np.where(array[id_name] == filament_names[idx])[0]
+                filament_list.append(array[indices])
+        elif case == 3:
+            filament_list = [0 for i in range(len(filament_names))]
+            for idx in range(len(filament_names)):
+                indices = np.where(array[id_name] == filament_names[idx])[0]
+                filament_list[idx] = array[indices]
+        else:
+            print('BLOPP')
+            return
+    elif typ == 'int':
+        filament_names, indices, inverse = np.unique(
+            array[id_name], return_index=True, return_inverse=True
+            )
+        if case == 0:
+            filament_list = []
+            for entry in indices:
+                indices_2 = np.where(inverse == entry)[0]
+                filament_list.append(array[indices_2])
+        elif case == 1:
+            filament_list = [0 for i in range(len(indices))]
+            for idx, entry in enumerate(indices):
+                indices_2 = np.where(inverse == entry)[0]
+                filament_list[idx] = array[indices_2]
+        elif case == 2:
+            filament_list = []
+            for idx in range(len(indices)):
+                indices_2 = np.where(inverse == indices[idx])[0]
+                filament_list.append(array[indices_2])
+        elif case == 3:
+            filament_list = [0 for i in range(len(indices))]
+            for idx in range(len(indices)):
+                indices_2 = np.where(inverse == indices[idx])[0]
+                filament_list[idx] = array[indices_2]
+        else:
+            print('BLOPP')
+            return
+
+
+    return np.array(filament_list)
 
 
 def get_filaments(array, id_name):
