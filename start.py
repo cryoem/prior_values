@@ -39,6 +39,12 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
     if output_dir is None:
         output_dir = '.'
 
+    if plot:
+        do_plot = True
+    else:
+        do_plot = False
+
+
     # Check angle range, import arrays
     if typ == 'sphire':
         angle_max = 360
@@ -93,18 +99,14 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
 
     # Create a new combined array
     array_temp = np.empty(len(array), dtype=dtype_temp)
+    for angle in angle_name:
+        array_temp[angle[IDX_ROT]] = np.copy(array[angle[IDX_OLD]])
 
     # Sort the array
     array = np.sort(array_temp, order=[mic_name, filament_name, particle_id])
 
     # Split the array into filaments
     filament_array = calculations.get_filaments(array[filament_name])
-
-    array_modified = None
-    if plot:
-        do_plot = True
-    else:
-        do_plot = False
 
     idx_sub = 0
     idx_rotate = 1
@@ -113,10 +115,8 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
     idx_sub_2 = 4
     idx_add = 5
     idx_add_2 = 6
-    for angle, angle_new, tolerance in zip(angle_name, angle_name_new, [tolerance_psi, tolerance_theta]):
-        print(angle)
+    for angle, tolerance in zip(angle_name, [tolerance_psi, tolerance_theta]):
         time_list = [[] for i in range(7)]
-        data_rotated_name = 'data_rotated_{0}'.format(angle)
         for idx, filament in enumerate(filament_array):
             if do_plot:
                 if idx % 10000 == 0:
