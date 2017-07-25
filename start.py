@@ -11,18 +11,17 @@ import read_sphire
 #import write_sphire
 
 
-def combine_arrays(array_one, array_two):
+def combine_arrays(array_list):
     """Add column to input array"""
-    assert(len(array_one) == len(array_two))
-    dtype_one = array_one.dtype.descr
-    dtype_two = array_two.dtype.descr
-    dtype_new = dtype_one + dtype_two
-    array_combined = np.empty(len(array_one), dtype=dtype_new)
+    dtype_new = []
+    for entry in array_list:
+        assert(len(entry) == len(array_list[0]))
+        dtype_new += entry.dtype.descr
+    array_combined = np.empty(len(array_list[0]), dtype=dtype_new)
 
-    for name in array_one.dtype.names:
-        array_combined[name] = array_one[name]
-    for name in array_two.dtype.names:
-        array_combined[name] = array_two[name]
+    for entry in array_list:
+        for name in entry.dtype.names:
+            array_combined[name] = entry[name]
 
     return array_combined
 
@@ -55,7 +54,7 @@ def main(file_name, tolerance_psi, tolerance_theta, tolerance_filament, window_s
         indices = read_sphire.get_sphire_file('index', index)
 
         substack = create_substack(original_stack, indices)
-        array = combine_arrays(substack, parameter)
+        array = combine_arrays([substack, parameter])
 
         stack_id, mic_name, filament_name, particle_id = \
             original_stack.dtype.names
