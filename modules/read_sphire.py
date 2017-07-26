@@ -5,7 +5,6 @@ import numpy as np
 def get_sphire_stack(stack_path):
     """Import the sphire bdb stack to numpy array"""
     dtype_list = [
-        ('source_n', '<i8'),
         ('ptcl_source_image', '|S200'),
         ('filament', '|S200'),
         ('data_n', '<i8')
@@ -28,11 +27,20 @@ def get_sphire_file(typ, input_file):
 
     if typ == 'index':
         dtype = int
+        data = np.genfromtxt(input_file, dtype=dtype)
+
     elif typ == 'params':
-        dtype = [('phi', '<f8'), ('theta', '<f8'), ('psi', '<f8'), ('shift_x', '<f8'), ('shift_y', '<f8'), ('err1', '<f8'), ('err2', '<f8'), ('norm', '<f8')]
+        dtype_import = [('phi', '<f8'), ('theta', '<f8'), ('psi', '<f8'), ('shift_x', '<f8'), ('shift_y', '<f8'), ('err1', '<f8'), ('err2', '<f8'), ('norm', '<f8')]
+        dtype = dtype_import + [('source_n', '<i8')]
+
+        data_import = np.genfromtxt(input_file, dtype=dtype_import)
+
+        data = np.empty(len(data_import), dtype=dtype)
+        data['source_n'] = np.arange(len(data))
+        for name in data_import.dtype.names:
+            data[name] = data_import[name]
+
     else:
         assert(False)
-
-    data = np.genfromtxt(input_file, dtype=dtype)
 
     return data
