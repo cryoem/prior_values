@@ -1,0 +1,15 @@
+Metadata-Version: 1.1
+Name: sphire-helix-utils
+Version: 0.0.1
+Summary: Fundamentals library for helical sphire
+Home-page: www.sphire.mpg.de
+Author: Markus Stabrin
+Author-email: markus.stabrin@mpi-dortmund.mpg.de
+License: GPL
+Description: # Helical sphire fundamental python package
+        
+Keywords: sphire helix helical cryo-EM
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Topic :: Utilities
+Classifier: License :: GPL License
