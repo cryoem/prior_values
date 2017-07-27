@@ -2,13 +2,19 @@ import sparx as sp
 import numpy as np
 
 
-def import_sphire_stack(stack_path):
-    """Import the necessary data from a bdb/hdf stack"""
+def get_stack_dtype():
+    """Return the dtype of the sphire stack array"""
     dtype_list = [
         ('ptcl_source_image', '|S200'),
         ('filament', '|S200'),
         ('data_n', '<i8')
         ]
+    return dtype_list
+
+
+def import_sphire_stack(stack_path):
+    """Import the necessary data from a bdb/hdf stack"""
+    dtype_list = get_stack_dtype()
 
     imported_data = []
     for name, typ in dtype_list:
