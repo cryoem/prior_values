@@ -90,7 +90,6 @@ def import_stack(stack, params=None, index=None, typ='sphire'):
     return [array, stack_id, mic_name, filament_name, particle_id, angle_name, output_names, angle_max, angle_min]
 
 
-
 def main(file_name, data, tolerance_psi, tolerance_theta, tolerance_filament, window_size, plot=False, typ='sphire', output_dir=None, params=None):
     """Start calculation"""
 
