@@ -289,7 +289,7 @@ def calculate_prior_values(data_rotated, prior_array, window_size, inside_tol_id
         plt.ylabel('Relative angle / degree')
         plt.grid()
         plt.title('stderr:{0}\nslopeerr:{1}\nintercepterr:{2}'.format(stderr, slope_sd, intercept_sd))
-        plt.savefig('{0}/{1}_fit_{2}.png'.format(plot['output_dir'], plot['prefix'], fit_index))
+        plt.savefig('{0}_fit_{1}.png'.format(plot['prefix'], fit_index))
         plt.clf()
         fit_index += 1
 
