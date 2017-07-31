@@ -178,7 +178,7 @@ def loop_filaments(prior_tracker):
         # Plot settings
         if idx < prior_tracker['plot_lim'] and prior_tracker['plot']:
             plot_dict['do_plot'] = True
-            plot_dict['prefix'] = '{0}/{1}_{2}'.format(prior_tracker['output_dir'], angle, idx)
+            plot_dict['prefix'] = '{0}/{1}_{2}'.format(plot_dict['output_dir'], angle, idx)
         else:
             plot_dict['do_plot'] = False
 
