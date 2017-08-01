@@ -99,3 +99,5 @@ def calculate_priors(
     # Write output
     mhl.export_data(prior_tracker=prior_tracker, typ=typ)
 
+    return prior_tracker['array'][prior_tracker['outlier']]
+

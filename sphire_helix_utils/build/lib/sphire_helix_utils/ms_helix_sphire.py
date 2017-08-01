@@ -70,10 +70,12 @@ def write_params_file(array, names, file_name, file_name_old, prior_tracker):
         shutil.move(file_name_old, file_name)
     else:
         file_name_old = '{0}_not_applied.txt'.format(file_mame)
+
     with open(file_name_old, 'w') as f:
         for element in array:
             if element[prior_tracker['outlier']]:
-                continue
+                #continue
+                pass
             else:
                 pass
             for name in new_name_order:
@@ -98,7 +100,8 @@ def write_index_file(array, file_name, file_name_old, prior_tracker):
     with open(file_name_old, 'w') as f:
         for element in array:
             if element[prior_tracker['outlier']]:
-                continue
+                #continue
+                pass
             else:
                 pass
             for name in ['stack_idx']:
