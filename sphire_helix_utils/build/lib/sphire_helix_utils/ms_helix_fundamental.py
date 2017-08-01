@@ -41,7 +41,8 @@ def calculate_priors(
         tol_filament=0.2,
         plot=False,
         plot_lim=4,
-        window_size=3
+        window_size=3,
+        node=0
         ):
     """Calculate prior values for the parameters
     prior_tracker keys:
@@ -79,6 +80,7 @@ def calculate_priors(
     prior_tracker['plot_lim'] = plot_lim
     prior_tracker['window_size'] = window_size
     prior_tracker['tol_filament'] = tol_filament
+    prior_tracker['node'] = node
     # Execute calculation for each angle
     for idx, angle in enumerate(prior_tracker['angle_names']):
         prior_tracker['tolerance'] = tolerance_list[idx]

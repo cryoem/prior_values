@@ -170,7 +170,9 @@ def loop_filaments(prior_tracker):
     angle = prior_tracker['angle']
     window_size = prior_tracker['window_size']
     plot_dict = {}
-    plot_dict['output_dir'] = '{0}/prior_images'.format(prior_tracker['output_dir'])
+    plot_dict['output_dir'] = '{0}/prior_images_{1}'.format(
+        prior_tracker['output_dir'], prior_tracker['node']
+        )
     if not os.path.exists(plot_dict['output_dir']):
         os.mkdir(plot_dict['output_dir'])
 
