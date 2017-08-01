@@ -55,7 +55,9 @@ def calculate_priors(
     angle_max
     angle_min
     output_columns
-    output_file
+    outlier
+    output_file_params
+    output_file_index
     output_dir
     idx_angle
     idx_angle_prior

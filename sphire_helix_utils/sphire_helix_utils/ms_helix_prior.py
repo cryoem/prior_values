@@ -222,7 +222,7 @@ def find_tolerance_outliers(input_array, tolerance, nr_outliers):
 
 
 fit_index = 0
-def calculate_prior_values(data_rotated, prior_array, window_size, inside_tol_idx, outside_tol_idx, plot={'do_plot':False}):
+def calculate_prior_values(data_rotated, prior_array, outlier_array, window_size, inside_tol_idx, outside_tol_idx, plot={'do_plot':False}):
     """Calculate running mean of the filament array"""
 
     if window_size < 3:
@@ -276,6 +276,7 @@ def calculate_prior_values(data_rotated, prior_array, window_size, inside_tol_id
 
     for idx in range(len(data_rotated)):
         prior_array[idx] = slope * idx + intercept
+        outlier_array[idx] = 0
 
     if plot['do_plot']:
         global fit_index
@@ -295,3 +296,9 @@ def calculate_prior_values(data_rotated, prior_array, window_size, inside_tol_id
 
     return True
 
+
+def fill_outlier(data_rotated, prior_array, outlier_array):
+    """Fill the prior array with values and mark as outlier"""
+    for idx in range(len(data_rotated)):
+        prior_array[idx] = data_rotated[idx]
+        outlier_array[idx] = 1

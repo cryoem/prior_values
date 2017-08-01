@@ -1,4 +1,5 @@
-import ms_helix_fundamental as mhf
+from sphire_helix_utils import ms_helix_fundamental as mhf
+import shutil
 
 
 def test_sphire_plot():
@@ -12,6 +13,9 @@ def test_sphire_plot():
     tol_filament = 0.2
     window_size = 3
     plot_lim = 4
+
+    shutil.copy2('index_raw.txt', 'index.txt')
+    shutil.copy2('params_raw.txt', 'params.txt')
 
     mhf.calculate_priors(
         tracker=name,
@@ -38,6 +42,9 @@ def test_sphire_no_plot():
     tol_filament = 0.2
     window_size = 3
     plot_lim = 4
+
+    shutil.copy2('index_raw.txt', 'index.txt')
+    shutil.copy2('params_raw.txt', 'params.txt')
 
     mhf.calculate_priors(
         tracker=name,

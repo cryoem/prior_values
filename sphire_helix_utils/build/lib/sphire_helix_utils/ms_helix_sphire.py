@@ -1,5 +1,6 @@
 import sparx as sp
 import numpy as np
+import shutil
 
 
 def get_stack_dtype():
@@ -47,17 +48,35 @@ def import_sphire_params(input_file):
 def import_sphire_index(input_file):
     """Import the params and index file"""
 
-    dtype = int
+    dtype = [('stack_idx', '<i8')]
     data = np.genfromtxt(input_file, dtype=dtype)
 
     return data
 
 
-def write_params_file(array, names, file_name):
+def write_params_file(array, names, file_name, file_name_old, prior_tracker):
     """Write sphire parameter file"""
-    with open(file_name, 'w') as f:
+    new_name_order = [
+        'phi',
+        'shift_x',
+        'shift_y',
+        'err1',
+        'err2',
+        'norm'
+        ]
+    for angle in prior_tracker['angle_names'][::-1]:
+        new_name_order.insert(1, angle[prior_tracker['idx_angle_prior']])
+    if prior_tracker['tracker']['state'] == 'RESTRICTED':
+        shutil.move(file_name_old, file_name)
+    else:
+        file_name_old = '{0}_not_applied.txt'.format(file_mame)
+    with open(file_name_old, 'w') as f:
         for element in array:
-            for name in names:
+            if element[prior_tracker['outlier']]:
+                continue
+            else:
+                pass
+            for name in new_name_order:
                 if isinstance(element[name], float):
                     text = '{:> 15.6f}'.format(element[name])
                 if isinstance(element[name], int):
@@ -68,3 +87,29 @@ def write_params_file(array, names, file_name):
                         )
                 f.write(text)
             f.write('\n')
+
+
+def write_index_file(array, file_name, file_name_old, prior_tracker):
+    """Write sphire index file"""
+    if prior_tracker['tracker']['state'] == 'RESTRICTED':
+        shutil.move(file_name_old, file_name)
+    else:
+        file_name_old = '{0}_not_applied.txt'.format(file_mame)
+    with open(file_name_old, 'w') as f:
+        for element in array:
+            if element[prior_tracker['outlier']]:
+                continue
+            else:
+                pass
+            for name in ['stack_idx']:
+                if isinstance(element[name], float):
+                    text = '{:> 15.6f}'.format(element[name])
+                if isinstance(element[name], int):
+                    text = '{:> 7d}'.format(element[name])
+                if isinstance(element[name], basestring):
+                    text = '{:>{}s}'.format(
+                        element[name], len(element[name]) + 6
+                        )
+                f.write(text)
+            f.write('\n')
+

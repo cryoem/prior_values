@@ -77,10 +77,10 @@ def import_data(tracker, params_file=None, index_file=None, typ='sphire'):
         # Import parameter and indices file and create a substack
         parameter = mhs.import_sphire_params(params_file)
         indices = mhs.import_sphire_index(index_file)
-        substack = original_stack[indices]
+        substack = original_stack[indices['stack_idx']]
 
         # Combine the substack and the parameters information
-        prior_tracker['array'] = rec.merge_arrays((substack, parameter), usemask=False, flatten=True)
+        prior_tracker['array'] = rec.merge_arrays((substack, parameter, indices), usemask=False, flatten=True)
 
         # Names of the different array columns
         prior_tracker['order'] = 'source_n'
@@ -93,10 +93,13 @@ def import_data(tracker, params_file=None, index_file=None, typ='sphire'):
         prior_tracker['angle_max'] = 360
         prior_tracker['angle_min'] = 0
         prior_tracker['output_columns'] = list(parameter.dtype.names)
-        prior_tracker['output_file'] = params_file[:-len('.txt')]
+        prior_tracker['output_file_params'] = params_file[:-len('.txt')]
+        prior_tracker['output_file_index'] = index_file[:-len('.txt')]
         prior_tracker['output_dir'] = params_file[:-len(params_file.split('/')[-1])]
         if prior_tracker['output_dir'] == '':
             prior_tracker['output_dir'] = '.'
+
+        prior_tracker['tracker'] = tracker
 
     elif typ == 'relion':
         # Import the relion file
@@ -145,6 +148,10 @@ def expand_and_order_array(prior_tracker):
         dtype_new.append((angle[IDX_PRIOR], '<f8'))
         dtype_new.append((angle[IDX_ROT], '<f8'))
         prior_tracker['output_columns'].append(angle[IDX_PRIOR])
+
+    # Add outlier dtype
+    prior_tracker['outlier'] = 'outlier'
+    dtype_new.append((prior_tracker['outlier'], '<i8'))
 
     # Create a new large array that combines everything
     array_new = np.empty(len(prior_tracker['array']), dtype=dtype_new)
@@ -207,15 +214,24 @@ def loop_filaments(prior_tracker):
             plot=plot_dict
             )
 
-        # Calculate prior values
-        mhp.calculate_prior_values(
-            data_rotated=filament[angle_rot],
-            prior_array=filament[angle_prior],
-            window_size=window_size,
-            inside_tol_idx=inside_tol_idx,
-            outside_tol_idx=outside_tol_idx,
-            plot=plot_dict
-            )
+        if is_outlier:
+            # Mark as outlier
+            mhp.fill_outlier(
+                data_rotated=filament[angle_rot],
+                prior_array=filament[angle_prior],
+                outlier_array=filament[prior_tracker['outlier']]
+                )
+        else:
+            # Calculate prior values
+            mhp.calculate_prior_values(
+                data_rotated=filament[angle_rot],
+                prior_array=filament[angle_prior],
+                outlier_array=filament[prior_tracker['outlier']],
+                window_size=window_size,
+                inside_tol_idx=inside_tol_idx,
+                outside_tol_idx=outside_tol_idx,
+                plot=plot_dict
+                )
 
         # Adjust angle range
         mhp.subtract_and_adjust_angles(
@@ -245,7 +261,15 @@ def export_data(prior_tracker, typ):
         mhs.write_params_file(
             array=prior_tracker['array'],
             names=prior_tracker['output_columns'],
-            file_name='{0}_prior.txt'.format(prior_tracker['output_file'])
+            file_name='{0}_prior.txt'.format(prior_tracker['output_file_params']),
+            file_name_old='{0}.txt'.format(prior_tracker['output_file_params']),
+            prior_tracker=prior_tracker
+            )
+        mhs.write_index_file(
+            array=prior_tracker['array'],
+            file_name='{0}_prior.txt'.format(prior_tracker['output_file_index']),
+            file_name_old='{0}.txt'.format(prior_tracker['output_file_index']),
+            prior_tracker=prior_tracker
             )
     else:
         assert(False)

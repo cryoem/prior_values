@@ -1,4 +1,4 @@
-import ms_helix_fundamental as mhf
+from sphire_helix_utils import ms_helix_fundamental as mhf
 
 
 def test_relion_plot():
