@@ -66,12 +66,13 @@ def write_params_file(array, names, file_name, file_name_old, prior_tracker):
         ]
     for angle in prior_tracker['angle_names'][::-1]:
         new_name_order.insert(1, angle[prior_tracker['idx_angle_prior']])
-    if prior_tracker['tracker']['state'] == 'RESTRICTED':
-        shutil.move(file_name_old, file_name)
-    else:
-        file_name_old = '{0}_not_applied.txt'.format(file_mame)
 
-    with open(file_name_old, 'w') as f:
+    output_name = prepare_output(
+        tracker=prior_tracker['tracker'],
+        file_name=file_name,
+        file_name_old=file_name_old
+        )
+    with open(output_name, 'w') as f:
         for element in array:
             if element[prior_tracker['outlier']]:
                 #continue
@@ -93,11 +94,13 @@ def write_params_file(array, names, file_name, file_name_old, prior_tracker):
 
 def write_index_file(array, file_name, file_name_old, prior_tracker):
     """Write sphire index file"""
-    if prior_tracker['tracker']['state'] == 'RESTRICTED':
-        shutil.move(file_name_old, file_name)
-    else:
-        file_name_old = '{0}_not_applied.txt'.format(file_mame)
-    with open(file_name_old, 'w') as f:
+
+    output_name = prepare_output(
+        tracker=prior_tracker['tracker'],
+        file_name=file_name,
+        file_name_old=file_name_old
+        )
+    with open(output_name, 'w') as f:
         for element in array:
             if element[prior_tracker['outlier']]:
                 #continue
@@ -116,3 +119,24 @@ def write_index_file(array, file_name, file_name_old, prior_tracker):
                 f.write(text)
             f.write('\n')
 
+
+def prepare_output(tracker, file_name, file_name_old):
+    default_name = '{0}_not_applied.txt'.format(file_name)
+
+    if isinstance(tracker, basestring):
+        output_name = default_name
+    elif isinstance(tracker, dict):
+        if tracker['constants']['apply_prior']:
+            if tracker['state'] == 'RESTRICTED':
+                shutil.move(file_name_old, file_name)
+                output_name = file_name_old
+            else:
+                output_name = default_name
+
+        else:
+            output_name = default_name
+    else:
+        print('Tracker instance "{0}" not known!'.format(type(tracker)))
+        assert(False)
+
+    return output_name
