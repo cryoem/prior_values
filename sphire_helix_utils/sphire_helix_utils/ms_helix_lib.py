@@ -38,6 +38,25 @@ import ms_helix_relion as mhr
 import ms_helix_prior as mhp
 
 
+def identify_outliers(prior_tracker):
+    """Identify outliers"""
+
+    IDX_ANGLE = prior_tracker['idx_angle']
+    for entry in prior_tracker['array']:
+        is_outlier = False
+        for angle in prior_tracker['angle_names']:
+            column = 'outlier_{0}'.format(angle[IDX_ANGLE])
+            if entry[column] == 1:
+                is_outlier = True
+            else:
+                pass
+
+        if is_outlier:
+            entry['outlier'] = 1
+        else:
+            entry['outlier'] = 0
+
+
 def combine_and_order_filaments(prior_tracker):
     """Combine filaments and order the resulting array"""
     array = np.empty(
@@ -147,6 +166,7 @@ def expand_and_order_array(prior_tracker):
     for angle in prior_tracker['angle_names']:
         dtype_new.append((angle[IDX_PRIOR], '<f8'))
         dtype_new.append((angle[IDX_ROT], '<f8'))
+        dtype_new.append(('outlier_{0}'.format(angle[IDX_ANGLE]), '<i8'))
         prior_tracker['output_columns'].append(angle[IDX_PRIOR])
 
     # Add outlier dtype
@@ -219,14 +239,14 @@ def loop_filaments(prior_tracker):
             mhp.fill_outlier(
                 data_rotated=filament[angle_rot],
                 prior_array=filament[angle_prior],
-                outlier_array=filament[prior_tracker['outlier']]
+                outlier_array=filament[prior_tracker['outlier_{0}'.format(angle)]]
                 )
         else:
             # Calculate prior values
             mhp.calculate_prior_values(
                 data_rotated=filament[angle_rot],
                 prior_array=filament[angle_prior],
-                outlier_array=filament[prior_tracker['outlier']],
+                outlier_array=filament[prior_tracker['outlier_{0}'.format(angle)]],
                 window_size=window_size,
                 inside_tol_idx=inside_tol_idx,
                 outside_tol_idx=outside_tol_idx,

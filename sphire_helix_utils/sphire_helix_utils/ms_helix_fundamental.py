@@ -93,6 +93,9 @@ def calculate_priors(
         # Loop over the filament
         prior_tracker = mhl.loop_filaments(prior_tracker=prior_tracker)
 
+    # Identify outliers
+    mhl.identify_outliers(prior_tracker=prior_tracker)
+
     # Combine arrays and sort the combined array
     prior_tracker = mhl.combine_and_order_filaments(prior_tracker=prior_tracker)
 
