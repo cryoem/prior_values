@@ -239,14 +239,14 @@ def loop_filaments(prior_tracker):
             mhp.fill_outlier(
                 data_rotated=filament[angle_rot],
                 prior_array=filament[angle_prior],
-                outlier_array=filament[prior_tracker['outlier_{0}'.format(angle)]]
+                outlier_array=filament['outlier_{0}'.format(angle)]
                 )
         else:
             # Calculate prior values
             mhp.calculate_prior_values(
                 data_rotated=filament[angle_rot],
                 prior_array=filament[angle_prior],
-                outlier_array=filament[prior_tracker['outlier_{0}'.format(angle)]],
+                outlier_array=filament['outlier_{0}'.format(angle)],
                 window_size=window_size,
                 inside_tol_idx=inside_tol_idx,
                 outside_tol_idx=outside_tol_idx,
