@@ -96,6 +96,12 @@ def calculate_priors(
     # Combine arrays and sort the combined array
     prior_tracker = mhl.combine_and_order_filaments(prior_tracker=prior_tracker)
 
+    # Print outliers
+    IDX_ANGLE = prior_tracker['idx_angle']
+    for angle in prior_tracker['angle_names']:
+        column = 'outlier_{0}'.format(angle[IDX_ANGLE])
+        print('==>', column, len(prior_tracker['array'][column][prior_tracker['array'][column] == 1]))
+
     # Identify outliers
     mhl.identify_outliers(prior_tracker=prior_tracker)
 
