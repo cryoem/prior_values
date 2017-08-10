@@ -35,6 +35,23 @@ import matplotlib.pyplot as plt
 import ms_helix_lib as mhl
 
 
+def wrapped_distribution(array):
+    """Calculate a wrapped normal distribution"""
+    nr_data = len(array)
+    summe = np.sum(np.exp(np.radians(array)*1j))
+    complex_mean = summe/float(nr_data)
+    complex_angle = np.angle(complex_mean)
+
+    R2 = np.real(complex_mean * np.conj(complex_mean))
+    #R2_e = (nr_data/float(nr_data-1)) * (R2 - 1/float(nr_data))
+    std = np.sqrt(np.log(1/float(R2)))
+
+    mean_list = [np.degrees(complex_angle) for entry in range(nr_data)]
+    std_list = [np.degrees(std) for entry in range(nr_data)]
+
+    return mean_list, std_list
+
+
 def get_filaments(prior_tracker):
     """Calculate the size and members of each filament with numpy"""
     # Create a list of unique filament names with indices
@@ -145,7 +162,7 @@ def identify_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament,
     """Get filament outliers based on tolerance"""
 
     if plot['do_plot']:
-        mhl.plot_polar('rotated_data_for_mean', data_rotated, rotate_angle, 180, -180, old_mean=0, tol=tolerance, mean=0, plot=plot)
+        mhl.plot_polar('rotated_data_for_mean_{0}'.format(tolerance), data_rotated, rotate_angle, 180, -180, old_mean=0, tol=tolerance, mean=0, plot=plot)
         plot_rotate_angle = rotate_angle
 
     # Calculate the local mean

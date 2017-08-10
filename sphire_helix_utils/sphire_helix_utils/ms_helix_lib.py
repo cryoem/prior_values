@@ -168,6 +168,7 @@ def expand_and_order_array(prior_tracker):
         dtype_new.append((angle[IDX_ROT], '<f8'))
         dtype_new.append(('outlier_{0}'.format(angle[IDX_ANGLE]), '<i8'))
         prior_tracker['output_columns'].append(angle[IDX_PRIOR])
+    print(dtype_new)
 
     # Add outlier dtype
     prior_tracker['outlier'] = 'outlier'
@@ -225,11 +226,22 @@ def loop_filaments(prior_tracker):
             plot=plot_dict
             )
 
+        # Calculate std dev
+        mean_list, std_list = mhp.wrapped_distribution(array=filament[angle])
+
         # Identify outliers
+        if prior_tracker['apply_method'] == 'deg':
+            tolerance = prior_tracker['tolerance']
+        elif prior_tracker['apply_method'] == 'std':
+            tolerance = prior_tracker['tolerance'] * std_list[0]
+        else:
+            print('apply_method unknown {0}!'.format(prior_tracker['tracker']['apply_method']))
+            raise NameError
+
         is_outlier, rotate_angle, inside_tol_idx, outside_tol_idx = mhp.identify_outliers(
             data_rotated=filament[angle_rot],
             rotate_angle=rotate_angle,
-            tolerance=prior_tracker['tolerance'],
+            tolerance=tolerance,
             tolerance_filament=prior_tracker['tol_filament'],
             plot=plot_dict
             )

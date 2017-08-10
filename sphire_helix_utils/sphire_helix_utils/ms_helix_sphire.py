@@ -127,7 +127,7 @@ def prepare_output(tracker, file_name, file_name_old):
         output_name = default_name
     elif isinstance(tracker, dict):
         if tracker['constants']['apply_prior']:
-            if tracker['state'] == 'RESTRICTED':
+            if tracker['state'] == 'RESTRICTED' or tracker['state'] == 'FINAL':
                 shutil.move(file_name_old, file_name)
                 output_name = file_name_old
             else:

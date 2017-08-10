@@ -39,6 +39,7 @@ def calculate_priors(
         tol_psi=30,
         tol_theta=15,
         tol_filament=0.2,
+        method='deg',
         plot=False,
         plot_lim=4,
         window_size=3,
@@ -83,6 +84,7 @@ def calculate_priors(
     prior_tracker['window_size'] = window_size
     prior_tracker['tol_filament'] = tol_filament
     prior_tracker['node'] = node
+    prior_tracker['apply_method'] = method
     # Execute calculation for each angle
     for idx, angle in enumerate(prior_tracker['angle_names']):
         prior_tracker['tolerance'] = tolerance_list[idx]
