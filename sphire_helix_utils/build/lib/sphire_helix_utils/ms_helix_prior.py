@@ -35,6 +35,23 @@ import matplotlib.pyplot as plt
 import ms_helix_lib as mhl
 
 
+def wrapped_distribution(array):
+    """Calculate a wrapped normal distribution"""
+    nr_data = len(array)
+    summe = np.sum(np.exp(np.radians(array)*1j))
+    complex_mean = summe/float(nr_data)
+    complex_angle = np.angle(complex_mean)
+
+    R2 = np.real(complex_mean * np.conj(complex_mean))
+    #R2_e = (nr_data/float(nr_data-1)) * (R2 - 1/float(nr_data))
+    std = np.sqrt(np.log(1/float(R2)))
+
+    mean_list = [np.degrees(complex_angle) for entry in range(nr_data)]
+    std_list = [np.degrees(std) for entry in range(nr_data)]
+
+    return mean_list, std_list
+
+
 def get_filaments(prior_tracker):
     """Calculate the size and members of each filament with numpy"""
     # Create a list of unique filament names with indices
@@ -66,7 +83,7 @@ def get_local_mean(input_array, rotate_angle, tolerance):
     return mean, len(outside_tolerance)
 
 
-def rotate_angles(data_rotated, plot={'do_plot':False}):
+def rotate_angles_median(data_rotated, plot={'do_plot':False}):
     """Rotate angles to match 0 with the median"""
     if plot['do_plot']:
         mhl.plot_polar('adjusted_angles', data_rotated, 0, 180, -180, plot=plot)
@@ -141,18 +158,14 @@ def subtract_and_adjust_angles(data_rotated, value, angle_max, angle_min):
         assert(False)
 
 
-def identify_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament, plot={'do_plot':False}):
+def rotate_angles_mean(data_rotated, rotate_angle, tol_mean, plot={'do_plot':False}):
     """Get filament outliers based on tolerance"""
-
-    if plot['do_plot']:
-        mhl.plot_polar('rotated_data_for_mean', data_rotated, rotate_angle, 180, -180, old_mean=0, tol=tolerance, mean=0, plot=plot)
-        plot_rotate_angle = rotate_angle
 
     # Calculate the local mean
     rotate_angle, nr_outliers = get_local_mean(
         data_rotated,
         rotate_angle,
-        tolerance
+        tol_mean
         )
     rotate_angle_old = rotate_angle
     iteration = 0
@@ -161,7 +174,7 @@ def identify_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament,
         rotate_angle, nr_outliers = get_local_mean(
             data_rotated,
             rotate_angle,
-            tolerance
+            tol_mean
             )
 
         # Abort criteria
@@ -171,18 +184,34 @@ def identify_outliers(data_rotated, rotate_angle, tolerance, tolerance_filament,
             rotate_angle_old = rotate_angle
         iteration += 1
 
-    if plot['do_plot']:
-        mhl.plot_polar('rotated_data_mean', data_rotated, rotate_angle, 180, -180, mean=0, tol=tolerance, old_mean=plot_rotate_angle-rotate_angle_old, plot=plot)
+    return rotate_angle, nr_outliers
+
+
+def identify_outliers_deg(data_rotated, tolerance, tolerance_filament, nr_outliers, plot={'do_plot':False}):
     inside_tolerance_idx, outside_tolerance_idx = find_tolerance_outliers(
         data_rotated, tolerance, nr_outliers
         )
 
     if nr_outliers / float(len(data_rotated)) >= tolerance_filament:
-        outlier = True
+        is_outlier = True
     else:
-        outlier = False
+        is_outlier = False
 
-    return outlier, rotate_angle, inside_tolerance_idx, outside_tolerance_idx
+    return is_outlier, inside_tolerance_idx, outside_tolerance_idx
+
+
+def identify_outliers_std(data_rotated, std, tolerance, tolerance_std, nr_outliers, plot={'do_plot':False}):
+    if tolerance_std * std > tolerance:
+        is_outlier = True
+        inside_tolerance_idx = None
+        outside_tolerance_idx = None
+    else:
+        is_outlier = False
+        inside_tolerance_idx, outside_tolerance_idx = find_tolerance_outliers(
+            data_rotated, tolerance_std * std, nr_outliers
+            )
+
+    return is_outlier, inside_tolerance_idx, outside_tolerance_idx
 
 
 def get_tolerance_outliers(input_array, tolerance):
@@ -222,7 +251,7 @@ def find_tolerance_outliers(input_array, tolerance, nr_outliers):
 
 
 fit_index = 0
-def calculate_prior_values(data_rotated, prior_array, outlier_array, window_size, inside_tol_idx, outside_tol_idx, plot={'do_plot':False}):
+def calculate_prior_values_linear(data_rotated, prior_array, outlier_array, window_size, inside_tol_idx, outside_tol_idx, plot={'do_plot':False}):
     """Calculate running mean of the filament array"""
 
     if window_size < 3:
@@ -233,6 +262,7 @@ def calculate_prior_values(data_rotated, prior_array, outlier_array, window_size
     if len(inside_tol_idx) <= window_size * 1.5:
         # Fill the prior array with zeros
         prior_array.fill(0)
+        outlier_array.fill(0)
         return True
     else:
         # Calculate running averages

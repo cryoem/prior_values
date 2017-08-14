@@ -220,19 +220,58 @@ def loop_filaments(prior_tracker):
             )
 
         # Rotate the angle range, so that the median is the new center
-        rotate_angle = mhp.rotate_angles(
+        rotate_angle = mhp.rotate_angles_median(
             data_rotated=filament[angle_rot],
             plot=plot_dict
             )
 
-        # Identify outliers
-        is_outlier, rotate_angle, inside_tol_idx, outside_tol_idx = mhp.identify_outliers(
+        # Rotate the angle range, so that the mean is the new center
+        rotate_angle, nr_outliers = mhp.rotate_angles_mean(
             data_rotated=filament[angle_rot],
             rotate_angle=rotate_angle,
-            tolerance=prior_tracker['tolerance'],
-            tolerance_filament=prior_tracker['tol_filament'],
+            tol_mean=prior_tracker['tol_mean'],
             plot=plot_dict
             )
+
+        # Calculate outliers based on the method
+        if prior_tracker['apply_method'] == 'deg':
+            # Identify based on degree
+            is_outlier, inside_tol_idx, outside_tol_idx = mhp.identify_outliers_deg(
+                data_rotated=filament[angle_rot],
+                tolerance=prior_tracker['tolerance'],
+                tolerance_filament=['tol_filament'],
+                nr_outliers=nr_outliers,
+                plot=plot_dict
+                )
+        elif prior_tracker['apply_method'] == 'std':
+            is_outlier, inside_tol_idx, outside_tol_idx = mhp.identify_outliers_deg(
+                data_rotated=filament[angle_rot],
+                tolerance=90,
+                tolerance_filament=['tol_filament'],
+                nr_outliers=nr_outliers,
+                plot=plot_dict
+                )
+            if is_outlier:
+                pass
+            else:
+                mean_list, std_list = mhp.wrapped_distribution(array=filament[angle][inside_tol_idx])
+                is_outlier, inside_tol_idx, outside_tol_idx = mhp.identify_outliers_std(
+                    data_rotated=filament[angle_rot],
+                    std=std_list[0],
+                    tolerance=prior_tracker['tolerance'],
+                    tolerance_std=prior_tracker['tol_std'],
+                    nr_outliers=nr_outliers,
+                    plot=plot_dict
+                    )
+        else:
+            print('\n', 'Apply method {0} now known! Use deg'.format(prior_tracker['apply_method']), '\n')
+            is_outlier, inside_tol_idx, outside_tol_idx = mhp.identify_outliers_deg(
+                data_rotated=filament[angle_rot],
+                tolerance=prior_tracker['tolerance'],
+                tolerance_filament=['tol_filament'],
+                nr_outliers=nr_outliers,
+                plot=plot_dict
+                )
 
         if is_outlier:
             # Mark as outlier
@@ -243,7 +282,7 @@ def loop_filaments(prior_tracker):
                 )
         else:
             # Calculate prior values
-            mhp.calculate_prior_values(
+            mhp.calculate_prior_values_linear(
                 data_rotated=filament[angle_rot],
                 prior_array=filament[angle_prior],
                 outlier_array=filament['outlier_{0}'.format(angle)],

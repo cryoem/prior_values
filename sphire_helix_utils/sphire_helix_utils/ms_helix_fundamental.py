@@ -39,6 +39,8 @@ def calculate_priors(
         tol_psi=30,
         tol_theta=15,
         tol_filament=0.2,
+        tol_std=1,
+        tol_mean=30,
         method='deg',
         plot=False,
         plot_lim=4,
@@ -64,6 +66,7 @@ def calculate_priors(
     idx_angle_prior
     idx_angle_rot
     array_filament
+    tol_filament
     """
 
     # Import the stack and get parameters
@@ -83,6 +86,8 @@ def calculate_priors(
     prior_tracker['plot_lim'] = plot_lim
     prior_tracker['window_size'] = window_size
     prior_tracker['tol_filament'] = tol_filament
+    prior_tracker['tol_std'] = tol_std
+    prior_tracker['tol_mean'] = tol_mean
     prior_tracker['node'] = node
     prior_tracker['apply_method'] = method
     # Execute calculation for each angle

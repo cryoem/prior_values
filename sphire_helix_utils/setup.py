@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "sphire_helix_utils",
-    version = "0.0.13",
+    version = "0.0.14",
     author = "Markus Stabrin",
     author_email = "markus.stabrin@mpi-dortmund.mpg.de",
     description=("Fundamentals library for helical sphire"),
