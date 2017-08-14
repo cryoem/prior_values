@@ -6256,9 +6256,13 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 			index_file=chunk_file,
 			plot=True,
 			node=procid,
-			tol_theta=tracker['constants']['tol_theta'],
+			typ='sphire',
+			window_size=tracker['constants']['window_size'],
 			tol_psi=tracker['constants']['tol_psi'],
-			tol_filament=tracker['constants']['tol_filament']
+			tol_theta=tracker['constants']['tol_theta'],
+			tol_filament=tracker['constants']['tol_filament'],
+			tol_std=tracker['constants']['tol_std'],
+			tol_mean=tracker['constants']['tol_mean']
 			)
 
 		# Print to screen
@@ -6345,6 +6349,9 @@ def main():
 	parser.add_option("--tol_psi",              type="float",             default=30,                     help="Tolerance for psi (default 30)")
 	parser.add_option("--tol_theta",              type="float",             default=15,                     help="Tolerance for theta (default 15)")
 	parser.add_option("--tol_filament",              type="float",             default=0.2,                     help="Tolerance for theta (default 0.2)")
+	parser.add_option("--tol_std",              type="float",             default=1.5,                     help="Tolerance for the standard deviation of the angular distribution (default 1.5)")
+	parser.add_option("--tol_mean",              type="float",             default=30,                     help="Tolerance for the mean calculation (default 30)")
+	parser.add_option("--window_size",              type="float",             default=30,                     help="Window size for the running average calcuatlion (default 3)")
 	parser.add_option("--continue_name",              type="string",             default='CONTINUE',                     help="Name for the continue run folder")
 	parser.add_option("--debug_it",              action="store_true",             default=False,                     help="Debuging mode for debug output")
 	
@@ -6428,6 +6435,9 @@ def main():
 		Constants["tol_psi"]             		= options.tol_psi
 		Constants["tol_theta"]             		= options.tol_theta
 		Constants["tol_filament"]             		= options.tol_filament
+		Constants["tol_std"]             		= options.tol_std
+		Constants["tol_mean"]             		= options.tol_mean
+		Constants["window_size"]             		= options.window_size
 		Constants["continue_name"]             		= options.continue_name
 		Constants["numpy_tracker_prefix"]		= 'numpy_'
 		Constants["debug_it"]		= options.debug_it
@@ -6831,6 +6841,7 @@ def main():
 					Tracker["constants"]["tol_filament"] = temp_tracker["constants"]["tol_filament"]
 					Tracker["constants"]["debug_it"] = temp_tracker["constants"]["debug_it"]
 					Tracker["constants"]["origin_masterdir"] = temp_tracker["constants"]["origin_masterdir"]
+					Tracker["constants"]["stack"] = temp_tracker["constants"]["stack"]
 					masterdir = temp_tracker["constants"]["masterdir"]
 
 					line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"
