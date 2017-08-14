@@ -1,0 +1,3 @@
+[console_scripts]
+sxmeridien_helix.py = sphire_helix_utils.sxmeridien_helix:main
+
