@@ -6839,9 +6839,13 @@ def main():
 					Tracker["constants"]["tol_psi"] = temp_tracker["constants"]["tol_psi"]
 					Tracker["constants"]["tol_theta"] = temp_tracker["constants"]["tol_theta"]
 					Tracker["constants"]["tol_filament"] = temp_tracker["constants"]["tol_filament"]
+					Tracker["constants"]["tol_std"] = temp_tracker["constants"]["tol_std"]
+					Tracker["constants"]["tol_mean"] = temp_tracker["constants"]["tol_mean"]
+					Tracker["constants"]["window_size"] = temp_tracker["constants"]["window_size"]
 					Tracker["constants"]["debug_it"] = temp_tracker["constants"]["debug_it"]
 					Tracker["constants"]["origin_masterdir"] = temp_tracker["constants"]["origin_masterdir"]
 					Tracker["constants"]["stack"] = temp_tracker["constants"]["stack"]
+					Tracker["constants"]["stack"] = temp_tracker["constants"]["stack_prior"]
 					masterdir = temp_tracker["constants"]["masterdir"]
 
 					line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"
