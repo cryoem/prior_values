@@ -60,16 +60,9 @@ Local with an = 12*delta
 
 
 from __future__ import print_function
-from EMAN2 	import *
-from sparx 	import *
-from EMAN2  import EMNumPy
 from logger import Logger, BaseLogger_Files
 import global_def
-from global_def import *
 
-from mpi   	import  *
-from math  	import  *
-from random import *
 import numpy as np
 
 import os
@@ -77,16 +70,83 @@ import sys
 import subprocess
 import string
 import json
-from   sys 	import exit
-from   time import localtime, strftime, sleep
+from sys import exit
+from time import localtime, strftime, sleep
 import shutil
 
 # Prior calculation modules
-sys.path.append('/work1/home/stabrin/Jasp_cLys_ADP/prior_values/modules')
 from sphire_helix_utils import ms_helix_sphire, ms_helix_fundamental
+from mpi import (
+	mpi_init,
+	mpi_comm_size,
+	MPI_COMM_WORLD,
+	mpi_comm_rank,
+	mpi_comm_split_type,
+	MPI_COMM_TYPE_SHARED,
+	MPI_INFO_NULL,
+	mpi_comm_split,
+	mpi_comm_group,
+	mpi_group_incl,
+	mpi_comm_create,
+	mpi_barrier,
+	MPI_COMM_NULL,
+	mpi_bcast,
+	MPI_INT,
+	mpi_win_allocate_shared,
+	mpi_win_shared_query,
+	MPI_PROC_NULL,
+	mpi_win_free,
+	mpi_iterefa,
+	MPI_MAX,
+	MPI_MIN,
+	mpi_reduce,
+	mpi_comm_free,
+	mpi_finalize
+	)
+from utilities_helix import (
+	get_colors_and_subsets,
+	wrap_mpi_gatherv,
+	wrap_mpi_bcast,
+	bcast_number_to_all,
+	cmdexecute,
+	write_text_file,
+	write_text_row,
+	model_blank,
+	convert_json_fromunicode,
+	read_text_row,
+	read_text_file,
+	model_circle,
+	reduce_EMData_to_root,
+	bcast_EMData_to_all,
+	get_im,
+	angles_to_normals,
+	getfvec,
+	get_dist,
+	bcast_list_to_all,
+	wrap_mpi_send,
+	wrap_mpi_recv,
+	reshape_1d,
+	get_image_data,
+	generate_ctf,
+	send_EMData,
+	recv_EMData
+	)
+from EMAN2  import EMNumPy, EMUtil, EMData, Util
+from fundamentals import (
+	symclass, cyclic_shift, rotate_params, fdecimate, fpol, goldsearch,
+	fft, fshift
+	)
+from morphology import cosinemask, ctf_img_real
+from filter import filt_table
+from math import ceil, atan, degrees, cos, radians
+from alignment import log2, ringwe
+from applications import MPI_start_end
+from random import shuffle
+from projection import prep_vol, prgl
+from statistics import fsc
 
 global Tracker, Blockdata
-global  target_theta, refang
+global target_theta, refang
 
 
 mpi_init(0, [])
@@ -6243,22 +6303,27 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 	"""Calculate the prior values and identify outliers"""
 
 	# Print to screen
-	if(blockdata["myid"] == blockdata["main_node"]):
+	if blockdata["myid"] == blockdata["main_node"]:
 		line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"
 		print(line,"Executed successfully: ", "Prior calculation")
 
 	# Calculate outliers
-	if(blockdata["myid"] == blockdata["nodes"][0] ): 
+	if blockdata["myid"] == blockdata["nodes"][0]: 
 		# Calculate priors
 		outliers = ms_helix_fundamental.calculate_priors(
 			tracker=tracker,
 			params_file=params_file,
 			index_file=chunk_file,
-			plot=True,
+			plot=tracker['constants']['dont_apply_plot'],
 			node=procid,
-			tol_theta=tracker['constants']['tol_theta'],
+			typ='sphire',
+			window_size=tracker['constants']['window_size'],
 			tol_psi=tracker['constants']['tol_psi'],
-			tol_filament=tracker['constants']['tol_filament']
+			tol_theta=tracker['constants']['tol_theta'],
+			tol_filament=tracker['constants']['tol_filament'],
+			tol_std=tracker['constants']['tol_std'],
+			tol_mean=tracker['constants']['tol_mean'],
+			prior_method=tracker['constants']['prior_method']
 			)
 
 		# Print to screen
@@ -6280,6 +6345,7 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 	# Distribute outlier list to all processes
 	outliers = bcast_list_to_all(outliers, blockdata["myid"], blockdata["nodes"][0])
 
+	# Save the outlier file!
 	np.savetxt(outlier_file, outliers)
 
 	# Get the node specific outlier information
@@ -6321,7 +6387,6 @@ def main():
 	parser.add_option("--inires",		       		type="float",	     	default=25.,		         	help="Resolution of the initial_volume volume (default 25A)")
 	parser.add_option("--mask3D",		        	type="string",	      	default=None,		          	help="3D mask file (default a sphere with radius (nx/2)-1)")
 	parser.add_option("--function",					type="string",          default="do_volume_mask",       help="name of the reference preparation function (default do_volume_mask)")
-	#parser.add_option("--function_prior",				type="string",          default=None,       help="name of the prior preparation function (default None)")
 	#parser.add_option("--hardmask",			   		action="store_true",	default=True,		     		help="Apply hard maks (with radius) to 2D data (default True)")
 	parser.add_option("--symmetry",					type="string",        	default= 'c1',		     		help="Point-group symmetry of the refined structure (default c1)")
 	parser.add_option("--skip_prealignment",		action="store_true", 	default=False,		         	help="skip 2-D pre-alignment step: to be used if images are already centered. (default False)")
@@ -6341,10 +6406,15 @@ def main():
 	parser.add_option("--oldrefdir",                type="string",          default='',                     help="The old refinement directory where sort3d is initiated")
 	parser.add_option("--ctrefromiter",             type="int",             default=-1,                     help="The iteration from which refinement will be continued")
 	parser.add_option("--apply_prior",              action="store_true",             default=False,                     help="Apply prior values")
-	parser.add_option("--apply_method",              type="string",             default='deg',                     help="Apply prior values method (degree ot multiple of sigma)")
+	parser.add_option("--apply_method",              type="string",             default='deg',                     help="Apply outlier values method (degree or multiple of sigma)")
+	parser.add_option("--apply_prior_method",              type="string",             default='fit',                     help="Apply prior values method linear, fit, running (Default fit)")
+	parser.add_option("--dont_apply_plot",              action="store_true",             default=True,                     help="Do the plot for the first 4 filaments (Default True)")
 	parser.add_option("--tol_psi",              type="float",             default=30,                     help="Tolerance for psi (default 30)")
 	parser.add_option("--tol_theta",              type="float",             default=15,                     help="Tolerance for theta (default 15)")
 	parser.add_option("--tol_filament",              type="float",             default=0.2,                     help="Tolerance for theta (default 0.2)")
+	parser.add_option("--tol_std",              type="float",             default=1.5,                     help="Tolerance for the standard deviation of the angular distribution (default 1.5)")
+	parser.add_option("--tol_mean",              type="float",             default=30,                     help="Tolerance for the mean calculation (default 30)")
+	parser.add_option("--window_size",              type="float",             default=30,                     help="Window size for the running average calcuatlion (default 3)")
 	parser.add_option("--continue_name",              type="string",             default='CONTINUE',                     help="Name for the continue run folder")
 	parser.add_option("--debug_it",              action="store_true",             default=False,                     help="Debuging mode for debug output")
 	
@@ -6425,9 +6495,14 @@ def main():
 		Constants["stack_prior"]             		= ms_helix_sphire.import_sphire_stack(args[0])
 		Constants["apply_prior"]             		= options.apply_prior
 		Constants["apply_method"]             		= options.apply_method
+		Constants["apply_prior_method"]             	= options.apply_prior_method
+		Constants["dont_apply_plot"]             	= options.dont_apply_plot
 		Constants["tol_psi"]             		= options.tol_psi
 		Constants["tol_theta"]             		= options.tol_theta
 		Constants["tol_filament"]             		= options.tol_filament
+		Constants["tol_std"]             		= options.tol_std
+		Constants["tol_mean"]             		= options.tol_mean
+		Constants["window_size"]             		= options.window_size
 		Constants["continue_name"]             		= options.continue_name
 		Constants["numpy_tracker_prefix"]		= 'numpy_'
 		Constants["debug_it"]		= options.debug_it
@@ -6455,7 +6530,6 @@ def main():
 		Constants["limit_changes"]     			= 1  # reduce delta by half if both limits are reached simultaneously
 		Constants["states"]            			= ["INITIAL", "PRIMARY", "EXHAUSTIVE", "RESTRICTED", "LOCAL", "FINAL"]
 		Constants["user_func"]					= options.function
-		#Constants["user_func_prior"]				= options.function_prior
 		Constants["hardmask"]          			=  True #options.hardmask
 		Constants["ccfpercentage"]     			= options.ccfpercentage/100.
 		Constants["expthreshold"]      			= -10
@@ -6829,8 +6903,13 @@ def main():
 					Tracker["constants"]["tol_psi"] = temp_tracker["constants"]["tol_psi"]
 					Tracker["constants"]["tol_theta"] = temp_tracker["constants"]["tol_theta"]
 					Tracker["constants"]["tol_filament"] = temp_tracker["constants"]["tol_filament"]
+					Tracker["constants"]["tol_std"] = temp_tracker["constants"]["tol_std"]
+					Tracker["constants"]["tol_mean"] = temp_tracker["constants"]["tol_mean"]
+					Tracker["constants"]["window_size"] = temp_tracker["constants"]["window_size"]
 					Tracker["constants"]["debug_it"] = temp_tracker["constants"]["debug_it"]
 					Tracker["constants"]["origin_masterdir"] = temp_tracker["constants"]["origin_masterdir"]
+					Tracker["constants"]["stack"] = temp_tracker["constants"]["stack"]
+					Tracker["constants"]["stack_prior"] = temp_tracker["constants"]["stack_prior"]
 					masterdir = temp_tracker["constants"]["masterdir"]
 
 					line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"
@@ -6856,8 +6935,10 @@ def main():
 					Tracker["constants"]["origin_masterdir"] = Tracker["constants"]["masterdir"]
 
 					for iteration in range(1, temp_tracker["mainiteration"]-1):
-						os.mkdir(os.path.join(Tracker["constants"]["masterdir"], "main{0:03d}".format(iteration)))
-
+						directory_temp = os.path.join(Tracker["constants"]["masterdir"], "main{0:03d}".format(iteration))
+						os.mkdir(directory_temp)
+						with open('{0}/Tracker_{1:03d}.json'.format(directory_temp, iteration), 'w') as f:
+							pass
 
 					line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"
 					print(line,"Output directory for the continue run: {0}".format(Tracker["constants"]["masterdir"]))

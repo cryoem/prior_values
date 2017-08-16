@@ -14,5 +14,9 @@ sphire_helix_utils.egg-info/dependency_links.txt
 sphire_helix_utils.egg-info/entry_points.txt
 sphire_helix_utils.egg-info/top_level.txt
 tests/__init__.py
-tests/test_relion.py
-tests/test_sphire.py
+tests/test_relion_fit.py
+tests/test_relion_linear.py
+tests/test_relion_running.py
+tests/test_sphire_fit.py
+tests/test_sphire_linear.py
+tests/test_sphire_running.py

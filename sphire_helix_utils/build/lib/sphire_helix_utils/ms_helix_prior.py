@@ -34,6 +34,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import ms_helix_lib as mhl
 
+fit_index = 0
 
 def wrapped_distribution(array):
     """Calculate a wrapped normal distribution"""
@@ -192,7 +193,7 @@ def identify_outliers_deg(data_rotated, tolerance, tolerance_filament, nr_outlie
         data_rotated, tolerance, nr_outliers
         )
 
-    if nr_outliers / float(len(data_rotated)) >= tolerance_filament:
+    if len(outside_tolerance_idx) / float(len(data_rotated)) >= tolerance_filament:
         is_outlier = True
     else:
         is_outlier = False
@@ -200,18 +201,13 @@ def identify_outliers_deg(data_rotated, tolerance, tolerance_filament, nr_outlie
     return is_outlier, inside_tolerance_idx, outside_tolerance_idx
 
 
-def identify_outliers_std(data_rotated, std, tolerance, tolerance_std, nr_outliers, plot={'do_plot':False}):
+def identify_outliers_std(std, tolerance, tolerance_std, plot={'do_plot':False}):
     if tolerance_std * std > tolerance:
         is_outlier = True
-        inside_tolerance_idx = None
-        outside_tolerance_idx = None
     else:
         is_outlier = False
-        inside_tolerance_idx, outside_tolerance_idx = find_tolerance_outliers(
-            data_rotated, tolerance_std * std, nr_outliers
-            )
 
-    return is_outlier, inside_tolerance_idx, outside_tolerance_idx
+    return is_outlier
 
 
 def get_tolerance_outliers(input_array, tolerance):
@@ -250,8 +246,155 @@ def find_tolerance_outliers(input_array, tolerance, nr_outliers):
     return inside_tolerance, outside_tolerance
 
 
-fit_index = 0
-def calculate_prior_values_linear(data_rotated, prior_array, outlier_array, window_size, inside_tol_idx, outside_tol_idx, plot={'do_plot':False}):
+def calculate_prior_values_running(data_rotated, prior_array, window_size, inside_tol_idx, outside_tol_idx, plot={'do_plot':False}):
+    if window_size < 3:
+        print("Window size needs to be at least 3: Changed window size to 3 and continue")
+        window_size = 3
+
+    # Check how to procede
+    if len(inside_tol_idx) <= window_size * 1.5:
+        # Fill the prior array with zeros
+        prior_array.fill(0)
+        return True
+    else:
+        # Calculate running averages
+        assert(len(inside_tol_idx) > window_size * 1.5)
+
+    # Calculate running averages
+    mean_list = []
+    mean_x_list = []
+    number_of_means = len(data_rotated) - window_size + 1
+    if window_size / float(2) % 2 == 0:
+        min_x_mean = window_size // 2 - 1
+    else:
+        min_x_mean = window_size // 2
+    max_x_mean = min_x_mean + number_of_means - 1
+
+    inside_tol_idx = set(inside_tol_idx)
+    for mean_idx in range(number_of_means):
+        summation = 0
+        skip = 0
+        for number_idx in range(mean_idx, mean_idx + window_size):
+            if number_idx in inside_tol_idx:
+                summation += data_rotated[number_idx]
+            else:
+                assert(number_idx in outside_tol_idx)
+                skip += 1
+        if skip == window_size:
+            continue
+        else:
+            mean_value = summation / float(window_size - skip)
+            mean_list.append(mean_value)
+            mean_x_list.append(min_x_mean + mean_idx)
+
+    set_x_list = set(mean_x_list)
+    for i in range(int(min_x_mean), int(max_x_mean)+1):
+        if i not in set_x_list:
+            idx = i - min_x_mean
+        else:
+            continue
+
+        temp_mean = []
+        if idx-1 < 0:
+            pass
+        else:
+            temp_mean.append(mean_list[idx-1])
+        if idx >= len(mean_x_list):
+            pass
+        else:
+            temp_mean.append(mean_list[idx])
+        mean_list.insert(idx, sum(temp_mean)/2)
+        mean_x_list.insert(idx, i)
+
+    min_value = mean_list[0]
+    max_value = mean_list[-1]
+    for i in reversed(range(min_x_mean)):
+        mean_list.insert(0, min_value)
+        mean_x_list.insert(0, i)
+    for i in range(max_x_mean, len(data_rotated)-1):
+        mean_list.append(max_value)
+        mean_x_list.append(i)
+
+    for idx in range(len(data_rotated)):
+        prior_array[idx] = mean_list[idx]
+
+    if plot['do_plot']:
+        global fit_index
+        plt.plot(mean_x_list, mean_list, 'x', label='running averages')
+        plt.plot(range(len(data_rotated)), data_rotated, 'o', label='data')
+        plt.ylim([-90, 90])
+        plt.legend(loc='best')
+        plt.xlabel('Particle helix id')
+        plt.ylabel('Relative angle / degree')
+        plt.grid()
+        plt.savefig('{0}_fit_{1}.png'.format(plot['prefix'], fit_index))
+        plt.clf()
+        fit_index += 1
+
+
+    return True
+
+
+def calc_chi_square(y_values, x_values, params, fit_dim, func):
+    points = len(y_values) - fit_dim - 1
+    if points <= 1:
+        points = 0.000000001
+    else:
+        pass
+    return np.sum((y_values - func(x_values, *params))**2) / points
+
+
+def calculate_prior_values_fit(data_rotated, prior_array, inside_tol_idx, plot={'do_plot':False}):
+    func_linear = lambda x, a, b: a*x + b
+    func_square = lambda x, a, b, c: a*x**2 + b*x + c
+    func_cube = lambda x, a, b, c, d: a*x**3 + b*x**2 + c*x + d
+
+    func_dict = {
+        1: {'func': func_linear, 'params': None},
+        2: {'func': func_square, 'params': None},
+        3: {'func': func_cube, 'params': None},
+        }
+
+    chi_min = 99999999
+    fit_min = 0
+    for fit_dim in range(1, 4):
+        params = np.polyfit(inside_tol_idx, data_rotated[inside_tol_idx], fit_dim)
+        func = func_dict[fit_dim]['func']
+        func_dict[fit_dim]['params'] = params
+
+        chi_square = calc_chi_square(
+            y_values=data_rotated[inside_tol_idx],
+            x_values=inside_tol_idx,
+            params=params,
+            func=func,
+            fit_dim=fit_dim
+            )
+
+        if chi_square < chi_min:
+            chi_min = chi_square
+            fit_min = fit_dim
+
+    func_min = func_dict[fit_min]['func']
+    params_min = func_dict[fit_min]['params']
+    for idx in range(len(data_rotated)):
+        prior_array[idx] = func_min(idx, *params_min)
+
+    if plot['do_plot']:
+        global fit_index
+        plt.plot(inside_tol_idx, data_rotated[inside_tol_idx], 'x', label='fitted data')
+        x = np.linspace(0, len(data_rotated)-1, 10000)
+        plt.plot(x, func_min(x, *params_min), label='regression')
+        plt.legend(loc='best')
+        plt.xlabel('Particle helix id')
+        plt.ylabel('Relative angle / degree')
+        plt.grid()
+        plt.title('fit_dim: {0}'.format(fit_min))
+        plt.savefig('{0}_fit_{1}.png'.format(plot['prefix'], fit_index))
+        plt.clf()
+        fit_index += 1
+
+
+def calculate_prior_values_linear(data_rotated, prior_array, window_size, inside_tol_idx, outside_tol_idx, plot={'do_plot':False}):
     """Calculate running mean of the filament array"""
 
     if window_size < 3:
@@ -262,7 +405,6 @@ def calculate_prior_values_linear(data_rotated, prior_array, outlier_array, wind
     if len(inside_tol_idx) <= window_size * 1.5:
         # Fill the prior array with zeros
         prior_array.fill(0)
-        outlier_array.fill(0)
         return True
     else:
         # Calculate running averages
@@ -306,7 +448,6 @@ def calculate_prior_values_linear(data_rotated, prior_array, outlier_array, wind
 
     for idx in range(len(data_rotated)):
         prior_array[idx] = slope * idx + intercept
-        outlier_array[idx] = 0
 
     if plot['do_plot']:
         global fit_index
@@ -314,7 +455,7 @@ def calculate_prior_values_linear(data_rotated, prior_array, outlier_array, wind
         plt.plot(range(len(data_rotated)), data_rotated, 'o', label='data')
         x = np.linspace(0, len(data_rotated)-1, 10000)
         plt.plot(x, slope * x + intercept, label='linear regression')
-        plt.ylim([-30, 30])
+        plt.ylim([-90, 90])
         plt.legend(loc='best')
         plt.xlabel('Particle helix id')
         plt.ylabel('Relative angle / degree')
@@ -326,9 +467,3 @@ def calculate_prior_values_linear(data_rotated, prior_array, outlier_array, wind
 
     return True
 
-
-def fill_outlier(data_rotated, prior_array, outlier_array):
-    """Fill the prior array with values and mark as outlier"""
-    for idx in range(len(data_rotated)):
-        prior_array[idx] = data_rotated[idx]
-        outlier_array[idx] = 1
