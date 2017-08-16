@@ -41,7 +41,7 @@ def calculate_priors(
         tol_filament=0.2,
         tol_std=1,
         tol_mean=30,
-        method='deg',
+        outlier_method='deg',
         prior_method='fit',
         plot=False,
         plot_lim=4,
@@ -71,6 +71,23 @@ def calculate_priors(
     tol_filament
     """
 
+    print('Prior calculation settings:')
+    print('-> params_file:', params_file)
+    print('-> index_file:', index_file)
+    print('-> typ:', typ)
+    print('-> tol_psi:', tol_psi)
+    print('-> tol_theta:', tol_theta)
+    print('-> tol_filament:', tol_filament)
+    print('-> tol_std:', tol_std)
+    print('-> tol_mean:', tol_mean)
+    print('-> outlier_method:', outlier_method)
+    print('-> prior_method:', prior_method)
+    print('-> plot:', plot)
+    print('-> plot_lim:', plot_lim)
+    print('-> window_size:', window_size)
+    print('-> remove_outlier:', remove_outlier)
+    print('-> node:', node)
+
     # Import the stack and get parameters
     if typ == 'sphire':
         prior_tracker = mhl.import_data_sphire(
@@ -99,7 +116,7 @@ def calculate_priors(
     prior_tracker['tol_std'] = tol_std
     prior_tracker['tol_mean'] = tol_mean
     prior_tracker['node'] = node
-    prior_tracker['apply_method'] = method
+    prior_tracker['apply_method'] = outlier_method
     prior_tracker['prior_method'] = prior_method
     prior_tracker['do_discard_outlier'] = remove_outlier
     # Execute calculation for each angle
