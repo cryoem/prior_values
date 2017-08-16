@@ -6321,7 +6321,7 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 			tol_std=tracker['constants']['tol_std'],
 			tol_mean=tracker['constants']['tol_mean'],
 			outlier_method=tracker['constants']['outlier_method'],
-			prior_method=tracker['constants']['prior_method'],
+			prior_method=tracker['constants']['apply_prior_method'],
 			plot=tracker['constants']['dont_apply_plot'],
 			plot_lim=4,
 			window_size=tracker['constants']['window_size'],
