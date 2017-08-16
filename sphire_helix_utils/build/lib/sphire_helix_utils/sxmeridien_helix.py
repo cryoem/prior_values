@@ -6502,7 +6502,7 @@ def main():
 		Constants["tol_filament"]             		= options.tol_filament
 		Constants["tol_std"]             		= options.tol_std
 		Constants["tol_mean"]             		= options.tol_mean
-		Constants["outlier_method"]             	= options.outlier_method
+		Constants["outlier_method"]             	= options.apply_method
 		Constants["apply_prior_method"]             	= options.apply_prior_method
 		Constants["dont_apply_plot"]             	= options.dont_apply_plot
 		Constants["window_size"]             		= options.window_size
