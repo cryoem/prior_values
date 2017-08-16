@@ -39,7 +39,57 @@ import ms_helix_prior as mhp
 
 
 def identify_outliers(prior_tracker):
-    """Identify outliers"""
+    """
+    Identify outliers: if one angle is outlier, the whole filament is marked as an outlier.
+
+    >>> data = np.array([(0, 0, 0), (0, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
+    >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
+    >>> identify_outliers(prior_tracker)
+    >>> print(prior_tracker['array']['outlier'])
+    [0 0]
+
+    >>> data = np.array([(1, 1, 0), (1, 1, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
+    >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
+    >>> identify_outliers(prior_tracker)
+    >>> print(prior_tracker['array']['outlier'])
+    [1 1]
+
+    >>> data = np.array([(0, 0, 0), (1, 1, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
+    >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
+    >>> identify_outliers(prior_tracker)
+    >>> print(prior_tracker['array']['outlier'])
+    [0 1]
+
+    >>> data = np.array([(1, 1, 0), (0, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
+    >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
+    >>> identify_outliers(prior_tracker)
+    >>> print(prior_tracker['array']['outlier'])
+    [1 0]
+
+    >>> data = np.array([(0, 0, 0), (1, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
+    >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
+    >>> identify_outliers(prior_tracker)
+    >>> print(prior_tracker['array']['outlier'])
+    [0 1]
+
+    >>> data = np.array([(0, 0, 0), (0, 1, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
+    >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
+    >>> identify_outliers(prior_tracker)
+    >>> print(prior_tracker['array']['outlier'])
+    [0 1]
+
+    >>> data = np.array([(1, 0, 0), (0, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
+    >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
+    >>> identify_outliers(prior_tracker)
+    >>> print(prior_tracker['array']['outlier'])
+    [1 0]
+
+    >>> data = np.array([(0, 1, 0), (0, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
+    >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
+    >>> identify_outliers(prior_tracker)
+    >>> print(prior_tracker['array']['outlier'])
+    [1 0]
+    """
 
     IDX_ANGLE = prior_tracker['idx_angle']
     for entry in prior_tracker['array']:
