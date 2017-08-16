@@ -155,25 +155,19 @@ def create_header_string(header_names):
     return ''.join(header_string)
 
 
-def write_star_file(output_array, header_string, output_file):
+def write_star_file(output_array, header_string, output_file, outliers, do_discard_outlier):
     """Write an output star file"""
-    written_string = []
-
-    # Delete nans
-    return_array = np.empty(0, dtype=output_array.dtype.descr)
-    for row in output_array:
-        if np.isnan(row['_rlnAnglePsiPrior']):
-            continue
-        if np.isnan(row['_rlnAngleTiltPrior']):
-            continue
-        else:
-            return_array = np.append(return_array, row)
+    if do_discard_outlier:
+        # Delete outliers
+        not_outliers = np.where(outliers==0)[0]
+    else:
+        not_outliers = np.index_exp[:]
 
     # Write output
     with open('{0}'.format(output_file), 'w') as f:
         f.write(header_string)
 
-        for row in return_array:
+        for row in output_array[not_outliers]:
             for element in row:
                 if isinstance(element, float):
                     text = '{:> 15.6f}'.format(element)
@@ -184,8 +178,4 @@ def write_star_file(output_array, header_string, output_file):
                         element, len(element) + 6
                         )
                 f.write(text)
-                written_string.append(text)
             f.write('\n')
-            written_string.append('\n')
-
-    return ''.join(written_string), return_array

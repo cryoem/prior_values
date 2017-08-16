@@ -41,11 +41,12 @@ def calculate_priors(
         tol_filament=0.2,
         tol_std=1,
         tol_mean=30,
-        method='deg',
+        outlier_method='deg',
         prior_method='fit',
         plot=False,
         plot_lim=4,
         window_size=3,
+        remove_outlier=False,
         node=0
         ):
     """Calculate prior values for the parameters
@@ -70,10 +71,35 @@ def calculate_priors(
     tol_filament
     """
 
+    print('Prior calculation settings:')
+    print('-> params_file:', params_file)
+    print('-> index_file:', index_file)
+    print('-> typ:', typ)
+    print('-> tol_psi:', tol_psi)
+    print('-> tol_theta:', tol_theta)
+    print('-> tol_filament:', tol_filament)
+    print('-> tol_std:', tol_std)
+    print('-> tol_mean:', tol_mean)
+    print('-> outlier_method:', outlier_method)
+    print('-> prior_method:', prior_method)
+    print('-> plot:', plot)
+    print('-> plot_lim:', plot_lim)
+    print('-> window_size:', window_size)
+    print('-> remove_outlier:', remove_outlier)
+    print('-> node:', node)
+
     # Import the stack and get parameters
-    prior_tracker = mhl.import_data(
-        tracker=tracker, index_file=index_file, params_file=params_file, typ=typ
-        )
+    if typ == 'sphire':
+        prior_tracker = mhl.import_data_sphire(
+            tracker=tracker, index_file=index_file, params_file=params_file
+            )
+    elif typ == 'relion':
+        prior_tracker = mhl.import_data_relion(file_name=tracker)
+    else:
+        print('Unreachable code! Typ {0} not known! Supports sphire, relion'.format(
+            typ
+            ))
+        return None
 
     # Create one huge array and sort the array
     prior_tracker = mhl.expand_and_order_array(prior_tracker=prior_tracker)
@@ -90,8 +116,9 @@ def calculate_priors(
     prior_tracker['tol_std'] = tol_std
     prior_tracker['tol_mean'] = tol_mean
     prior_tracker['node'] = node
-    prior_tracker['apply_method'] = method
+    prior_tracker['apply_method'] = outlier_method
     prior_tracker['prior_method'] = prior_method
+    prior_tracker['do_discard_outlier'] = remove_outlier
     # Execute calculation for each angle
     for idx, angle in enumerate(prior_tracker['angle_names']):
         prior_tracker['tolerance'] = tolerance_list[idx]
@@ -103,7 +130,7 @@ def calculate_priors(
         prior_tracker = mhl.loop_filaments(prior_tracker=prior_tracker)
 
     # Combine arrays and sort the combined array
-    prior_tracker = mhl.combine_and_order_filaments(prior_tracker=prior_tracker)
+    mhl.combine_and_order_filaments(prior_tracker=prior_tracker)
 
     # Print outliers
     IDX_ANGLE = prior_tracker['idx_angle']
@@ -115,7 +142,44 @@ def calculate_priors(
     mhl.identify_outliers(prior_tracker=prior_tracker)
 
     # Write output
-    mhl.export_data(prior_tracker=prior_tracker, typ=typ)
+    if typ == 'sphire':
+        mhl.export_data_sphire(prior_tracker=prior_tracker)
+    elif typ == 'relion':
+        mhl.export_data_relion(prior_tracker=prior_tracker)
+    else:
+        print('Unreachable code! Typ {0} not known! Supports sphire, relion'.format(
+            typ
+            ))
+        return None
 
     return prior_tracker['array'][prior_tracker['outlier']]
+
+
+if __name__ == '__main__':
+    import shutil
+    import os
+    shutil.copy2('../tests/params_raw.txt', 'params.txt')
+    shutil.copy2('../tests/index_raw.txt', 'index.txt')
+    calculate_priors(
+        'bdb:../tests/stack',
+        params_file='params.txt',
+        index_file='index.txt',
+        typ='sphire',
+        tol_psi=30,
+        tol_theta=15,
+        tol_filament=0.2,
+        tol_std=1,
+        tol_mean=30,
+        method='deg',
+        prior_method='fit',
+        plot=False,
+        plot_lim=4,
+        window_size=3,
+        remove_outlier=False,
+        node=0
+        )
+    os.remove('params.txt')
+    os.remove('params_prior.txt_not_applied.txt')
+    os.remove('index.txt')
+    os.remove('index_prior.txt_not_applied.txt')
 

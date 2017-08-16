@@ -6314,16 +6314,19 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 			tracker=tracker,
 			params_file=params_file,
 			index_file=chunk_file,
-			plot=tracker['constants']['dont_apply_plot'],
-			node=procid,
 			typ='sphire',
-			window_size=tracker['constants']['window_size'],
 			tol_psi=tracker['constants']['tol_psi'],
 			tol_theta=tracker['constants']['tol_theta'],
 			tol_filament=tracker['constants']['tol_filament'],
 			tol_std=tracker['constants']['tol_std'],
 			tol_mean=tracker['constants']['tol_mean'],
-			prior_method=tracker['constants']['prior_method']
+			outlier_method=tracker['constants']['outlier_method'],
+			prior_method=tracker['constants']['prior_method'],
+			plot=tracker['constants']['dont_apply_plot'],
+			plot_lim=4,
+			window_size=tracker['constants']['window_size'],
+			remove_outliers=False,
+			node=procid
 			)
 
 		# Print to screen
@@ -6492,16 +6495,16 @@ def main():
 		Constants		       			= {}
 		
 		Constants["stack"]             			= args[0]
-		Constants["stack_prior"]             		= ms_helix_sphire.import_sphire_stack(args[0])
 		Constants["apply_prior"]             		= options.apply_prior
-		Constants["apply_method"]             		= options.apply_method
-		Constants["apply_prior_method"]             	= options.apply_prior_method
-		Constants["dont_apply_plot"]             	= options.dont_apply_plot
+		Constants["stack_prior"]             		= ms_helix_sphire.import_sphire_stack(args[0])
 		Constants["tol_psi"]             		= options.tol_psi
 		Constants["tol_theta"]             		= options.tol_theta
 		Constants["tol_filament"]             		= options.tol_filament
 		Constants["tol_std"]             		= options.tol_std
 		Constants["tol_mean"]             		= options.tol_mean
+		Constants["outlier_method"]             	= options.outlier_method
+		Constants["apply_prior_method"]             	= options.apply_prior_method
+		Constants["dont_apply_plot"]             	= options.dont_apply_plot
 		Constants["window_size"]             		= options.window_size
 		Constants["continue_name"]             		= options.continue_name
 		Constants["numpy_tracker_prefix"]		= 'numpy_'
