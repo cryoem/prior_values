@@ -60,16 +60,9 @@ Local with an = 12*delta
 
 
 from __future__ import print_function
-from EMAN2 	import *
-from sparx 	import *
-from EMAN2  import EMNumPy
 from logger import Logger, BaseLogger_Files
 import global_def
-from global_def import *
 
-from mpi   	import  *
-from math  	import  *
-from random import *
 import numpy as np
 
 import os
@@ -77,16 +70,83 @@ import sys
 import subprocess
 import string
 import json
-from   sys 	import exit
-from   time import localtime, strftime, sleep
+from sys import exit
+from time import localtime, strftime, sleep
 import shutil
 
 # Prior calculation modules
-sys.path.append('/work1/home/stabrin/Jasp_cLys_ADP/prior_values/modules')
 from sphire_helix_utils import ms_helix_sphire, ms_helix_fundamental
+from mpi import (
+	mpi_init,
+	mpi_comm_size,
+	MPI_COMM_WORLD,
+	mpi_comm_rank,
+	mpi_comm_split_type,
+	MPI_COMM_TYPE_SHARED,
+	MPI_INFO_NULL,
+	mpi_comm_split,
+	mpi_comm_group,
+	mpi_group_incl,
+	mpi_comm_create,
+	mpi_barrier,
+	MPI_COMM_NULL,
+	mpi_bcast,
+	MPI_INT,
+	mpi_win_allocate_shared,
+	mpi_win_shared_query,
+	MPI_PROC_NULL,
+	mpi_win_free,
+	mpi_iterefa,
+	MPI_MAX,
+	MPI_MIN,
+	mpi_reduce,
+	mpi_comm_free,
+	mpi_finalize
+	)
+from utilities_helix import (
+	get_colors_and_subsets,
+	wrap_mpi_gatherv,
+	wrap_mpi_bcast,
+	bcast_number_to_all,
+	cmdexecute,
+	write_text_file,
+	write_text_row,
+	model_blank,
+	convert_json_fromunicode,
+	read_text_row,
+	read_text_file,
+	model_circle,
+	reduce_EMData_to_root,
+	bcast_EMData_to_all,
+	get_im,
+	angles_to_normals,
+	getfvec,
+	get_dist,
+	bcast_list_to_all,
+	wrap_mpi_send,
+	wrap_mpi_recv,
+	reshape_1d,
+	get_image_data,
+	generate_ctf,
+	send_EMData,
+	recv_EMData
+	)
+from EMAN2  import EMNumPy, EMUtil, EMData, Util
+from fundamentals import (
+	symclass, cyclic_shift, rotate_params, fdecimate, fpol, goldsearch,
+	fft, fshift
+	)
+from morphology import cosinemask, ctf_img_real
+from filter import filt_table
+from math import ceil, atan, degrees, cos, radians
+from alignment import log2, ringwe
+from applications import MPI_start_end
+from random import shuffle
+from projection import prep_vol, prgl
+from statistics import fsc
 
 global Tracker, Blockdata
-global  target_theta, refang
+global target_theta, refang
 
 
 mpi_init(0, [])
@@ -6845,7 +6905,7 @@ def main():
 					Tracker["constants"]["debug_it"] = temp_tracker["constants"]["debug_it"]
 					Tracker["constants"]["origin_masterdir"] = temp_tracker["constants"]["origin_masterdir"]
 					Tracker["constants"]["stack"] = temp_tracker["constants"]["stack"]
-					Tracker["constants"]["stack"] = temp_tracker["constants"]["stack_prior"]
+					Tracker["constants"]["stack_prior"] = temp_tracker["constants"]["stack_prior"]
 					masterdir = temp_tracker["constants"]["masterdir"]
 
 					line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"
@@ -6871,8 +6931,10 @@ def main():
 					Tracker["constants"]["origin_masterdir"] = Tracker["constants"]["masterdir"]
 
 					for iteration in range(1, temp_tracker["mainiteration"]-1):
-						os.mkdir(os.path.join(Tracker["constants"]["masterdir"], "main{0:03d}".format(iteration)))
-
+						directory_temp = os.path.join(Tracker["constants"]["masterdir"], "main{0:03d}".format(iteration))
+						os.mkdir(directory_temp)
+						with open('{0}/Tracker_{1:03d}.json'.format(directory_temp, iteration), 'w') as f:
+							pass
 
 					line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"
 					print(line,"Output directory for the continue run: {0}".format(Tracker["constants"]["masterdir"]))
