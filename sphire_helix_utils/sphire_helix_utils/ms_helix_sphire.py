@@ -72,24 +72,7 @@ def write_params_file(array, names, file_name, file_name_old, prior_tracker):
         file_name=file_name,
         file_name_old=file_name_old
         )
-    with open(output_name, 'w') as f:
-        for element in array:
-            if element[prior_tracker['outlier']]:
-                #continue
-                pass
-            else:
-                pass
-            for name in new_name_order:
-                if isinstance(element[name], float):
-                    text = '{:> 15.6f}'.format(element[name])
-                if isinstance(element[name], int):
-                    text = '{:> 7d}'.format(element[name])
-                if isinstance(element[name], basestring):
-                    text = '{:>{}s}'.format(
-                        element[name], len(element[name]) + 6
-                        )
-                f.write(text)
-            f.write('\n')
+    write_file(output_name=output_name, array=array, name_list=new_name_order, outlier_apply=prior_tracker['do_discard_outlier'], outlier_name=prior_tracker['outlier'])
 
 
 def write_index_file(array, file_name, file_name_old, prior_tracker):
@@ -100,14 +83,19 @@ def write_index_file(array, file_name, file_name_old, prior_tracker):
         file_name=file_name,
         file_name_old=file_name_old
         )
+    write_file(output_name=output_name, array=array, name_list=['stack_idx'], outlier_apply=prior_tracker['do_discard_outlier'], outlier_name=prior_tracker['outlier'])
+
+def write_file(output_name, array, name_list, outlier_apply, outlier_name):
     with open(output_name, 'w') as f:
         for element in array:
-            if element[prior_tracker['outlier']]:
-                #continue
-                pass
+            if element[outlier_name] == 1:
+                if outlier_apply:
+                    continue
+                else:
+                    pass
             else:
                 pass
-            for name in ['stack_idx']:
+            for name in name_list:
                 if isinstance(element[name], float):
                     text = '{:> 15.6f}'.format(element[name])
                 if isinstance(element[name], int):
