@@ -6902,7 +6902,7 @@ def main():
 				Tracker["directory"]		= os.path.join(Tracker["constants"]["masterdir"],"main%03d"%Tracker["mainiteration"])
 				if continue_mode_first:
 					Tracker["constants"]["apply_prior"] = temp_tracker["constants"]["apply_prior"]
-					Tracker["constants"]["apply_method"] = temp_tracker["constants"]["apply_method"]
+					Tracker["constants"]["outlier_method"] = temp_tracker["constants"]["outlier_method"]
 					Tracker["constants"]["tol_psi"] = temp_tracker["constants"]["tol_psi"]
 					Tracker["constants"]["tol_theta"] = temp_tracker["constants"]["tol_theta"]
 					Tracker["constants"]["tol_filament"] = temp_tracker["constants"]["tol_filament"]
