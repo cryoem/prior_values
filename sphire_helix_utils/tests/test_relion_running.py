@@ -1,7 +1,7 @@
 from sphire_helix_utils import ms_helix_fundamental as mhf
 
 
-def test_relion_plot():
+def test_relion_plot_deg_running():
     plot = True
     typ = 'relion'
     name = 'data_test.star'
@@ -10,27 +10,35 @@ def test_relion_plot():
     tol_psi = 30
     tol_theta = 15
     tol_filament = 0.2
+    tol_std = 1
+    tol_mean = 30
     window_size = 3
     plot_lim = 4
     method = 'deg'
+    prior_method = 'running'
+    node = 0
 
 
     mhf.calculate_priors(
-        tracker=name,
-        params_file=params,
-        index_file=index,
+        plot=plot,
         typ=typ,
+        tracker=name,
+        index_file=index,
+        params_file=params,
         tol_psi=tol_psi,
         tol_theta=tol_theta,
         tol_filament=tol_filament,
-        plot=plot,
+        tol_std=tol_std,
+        tol_mean=tol_mean,
+        window_size=window_size,
         plot_lim=plot_lim,
         method=method,
-        window_size=window_size
+        prior_method=prior_method,
+        node=node
         )
 
 
-def test_relion_no_plot():
+def test_relion_no_plot_deg_running():
     plot = False
     typ = 'relion'
     name = 'data_test.star'
@@ -39,27 +47,35 @@ def test_relion_no_plot():
     tol_psi = 30
     tol_theta = 15
     tol_filament = 0.2
+    tol_std = 1
+    tol_mean = 30
     window_size = 3
     plot_lim = 4
     method = 'deg'
+    prior_method = 'running'
+    node = 0
 
 
     mhf.calculate_priors(
-        tracker=name,
-        params_file=params,
-        index_file=index,
+        plot=plot,
         typ=typ,
+        tracker=name,
+        index_file=index,
+        params_file=params,
         tol_psi=tol_psi,
         tol_theta=tol_theta,
         tol_filament=tol_filament,
-        plot=plot,
+        tol_std=tol_std,
+        tol_mean=tol_mean,
+        window_size=window_size,
         plot_lim=plot_lim,
         method=method,
-        window_size=window_size
+        prior_method=prior_method,
+        node=node
         )
 
 
-def test_relion_std_plot():
+def test_relion_plot_std_running():
     plot = True
     typ = 'relion'
     name = 'data_test.star'
@@ -68,27 +84,35 @@ def test_relion_std_plot():
     tol_psi = 30
     tol_theta = 15
     tol_filament = 0.2
+    tol_std = 1
+    tol_mean = 30
     window_size = 3
     plot_lim = 4
-    method='std'
+    method = 'std'
+    prior_method = 'running'
+    node = 0
 
 
     mhf.calculate_priors(
-        tracker=name,
-        params_file=params,
-        index_file=index,
+        plot=plot,
         typ=typ,
+        tracker=name,
+        index_file=index,
+        params_file=params,
         tol_psi=tol_psi,
         tol_theta=tol_theta,
         tol_filament=tol_filament,
-        plot=plot,
+        tol_std=tol_std,
+        tol_mean=tol_mean,
+        window_size=window_size,
         plot_lim=plot_lim,
         method=method,
-        window_size=window_size
+        prior_method=prior_method,
+        node=node
         )
 
 
-def test_relion_std_no_plot():
+def test_relion_no_plot_std_running():
     plot = False
     typ = 'relion'
     name = 'data_test.star'
@@ -97,27 +121,40 @@ def test_relion_std_no_plot():
     tol_psi = 30
     tol_theta = 15
     tol_filament = 0.2
+    tol_std = 1
+    tol_mean = 30
     window_size = 3
     plot_lim = 4
-    method='std'
+    method = 'std'
+    prior_method = 'running'
+    node = 0
 
 
     mhf.calculate_priors(
-        tracker=name,
-        params_file=params,
-        index_file=index,
+        plot=plot,
         typ=typ,
+        tracker=name,
+        index_file=index,
+        params_file=params,
         tol_psi=tol_psi,
         tol_theta=tol_theta,
         tol_filament=tol_filament,
-        plot=plot,
+        tol_std=tol_std,
+        tol_mean=tol_mean,
+        window_size=window_size,
         plot_lim=plot_lim,
         method=method,
-        window_size=window_size
+        prior_method=prior_method,
+        node=node
         )
 
 
 if __name__ == '__main__':
-    test_relion_plot()
-    test_relion_no_plot()
-
+    try:
+        import ms_helix_fundamental as mhf
+    except:
+        pass
+    test_relion_plot_deg_running()
+    test_relion_no_plot_deg_running()
+    test_relion_plot_std_running()
+    test_relion_no_plot_std_running()
