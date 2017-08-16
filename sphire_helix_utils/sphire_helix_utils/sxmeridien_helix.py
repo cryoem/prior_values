@@ -6417,7 +6417,7 @@ def main():
 	parser.add_option("--tol_filament",              type="float",             default=0.2,                     help="Tolerance for theta (default 0.2)")
 	parser.add_option("--tol_std",              type="float",             default=1.5,                     help="Tolerance for the standard deviation of the angular distribution (default 1.5)")
 	parser.add_option("--tol_mean",              type="float",             default=30,                     help="Tolerance for the mean calculation (default 30)")
-	parser.add_option("--window_size",              type="float",             default=30,                     help="Window size for the running average calcuatlion (default 3)")
+	parser.add_option("--window_size",              type="int",             default=5,                     help="Window size for the running average calcuatlion (default 5)")
 	parser.add_option("--continue_name",              type="string",             default='CONTINUE',                     help="Name for the continue run folder")
 	parser.add_option("--debug_it",              action="store_true",             default=False,                     help="Debuging mode for debug output")
 	
