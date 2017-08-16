@@ -6303,18 +6303,18 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 	"""Calculate the prior values and identify outliers"""
 
 	# Print to screen
-	if(blockdata["myid"] == blockdata["main_node"]):
+	if blockdata["myid"] == blockdata["main_node"]:
 		line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"
 		print(line,"Executed successfully: ", "Prior calculation")
 
 	# Calculate outliers
-	if(blockdata["myid"] == blockdata["nodes"][0] ): 
+	if blockdata["myid"] == blockdata["nodes"][0]: 
 		# Calculate priors
 		outliers = ms_helix_fundamental.calculate_priors(
 			tracker=tracker,
 			params_file=params_file,
 			index_file=chunk_file,
-			plot=True,
+			plot=tracker['constants']['dont_apply_plot'],
 			node=procid,
 			typ='sphire',
 			window_size=tracker['constants']['window_size'],
@@ -6322,7 +6322,8 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 			tol_theta=tracker['constants']['tol_theta'],
 			tol_filament=tracker['constants']['tol_filament'],
 			tol_std=tracker['constants']['tol_std'],
-			tol_mean=tracker['constants']['tol_mean']
+			tol_mean=tracker['constants']['tol_mean'],
+			prior_method=tracker['constants']['prior_method']
 			)
 
 		# Print to screen
@@ -6344,6 +6345,7 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 	# Distribute outlier list to all processes
 	outliers = bcast_list_to_all(outliers, blockdata["myid"], blockdata["nodes"][0])
 
+	# Save the outlier file!
 	np.savetxt(outlier_file, outliers)
 
 	# Get the node specific outlier information
@@ -6385,7 +6387,6 @@ def main():
 	parser.add_option("--inires",		       		type="float",	     	default=25.,		         	help="Resolution of the initial_volume volume (default 25A)")
 	parser.add_option("--mask3D",		        	type="string",	      	default=None,		          	help="3D mask file (default a sphere with radius (nx/2)-1)")
 	parser.add_option("--function",					type="string",          default="do_volume_mask",       help="name of the reference preparation function (default do_volume_mask)")
-	#parser.add_option("--function_prior",				type="string",          default=None,       help="name of the prior preparation function (default None)")
 	#parser.add_option("--hardmask",			   		action="store_true",	default=True,		     		help="Apply hard maks (with radius) to 2D data (default True)")
 	parser.add_option("--symmetry",					type="string",        	default= 'c1',		     		help="Point-group symmetry of the refined structure (default c1)")
 	parser.add_option("--skip_prealignment",		action="store_true", 	default=False,		         	help="skip 2-D pre-alignment step: to be used if images are already centered. (default False)")
@@ -6405,7 +6406,9 @@ def main():
 	parser.add_option("--oldrefdir",                type="string",          default='',                     help="The old refinement directory where sort3d is initiated")
 	parser.add_option("--ctrefromiter",             type="int",             default=-1,                     help="The iteration from which refinement will be continued")
 	parser.add_option("--apply_prior",              action="store_true",             default=False,                     help="Apply prior values")
-	parser.add_option("--apply_method",              type="string",             default='deg',                     help="Apply prior values method (degree ot multiple of sigma)")
+	parser.add_option("--apply_method",              type="string",             default='deg',                     help="Apply outlier values method (degree or multiple of sigma)")
+	parser.add_option("--apply_prior_method",              type="string",             default='fit',                     help="Apply prior values method linear, fit, running (Default fit)")
+	parser.add_option("--dont_apply_plot",              action="store_true",             default=True,                     help="Do the plot for the first 4 filaments (Default True)")
 	parser.add_option("--tol_psi",              type="float",             default=30,                     help="Tolerance for psi (default 30)")
 	parser.add_option("--tol_theta",              type="float",             default=15,                     help="Tolerance for theta (default 15)")
 	parser.add_option("--tol_filament",              type="float",             default=0.2,                     help="Tolerance for theta (default 0.2)")
@@ -6492,6 +6495,8 @@ def main():
 		Constants["stack_prior"]             		= ms_helix_sphire.import_sphire_stack(args[0])
 		Constants["apply_prior"]             		= options.apply_prior
 		Constants["apply_method"]             		= options.apply_method
+		Constants["apply_prior_method"]             	= options.apply_prior_method
+		Constants["dont_apply_plot"]             	= options.dont_apply_plot
 		Constants["tol_psi"]             		= options.tol_psi
 		Constants["tol_theta"]             		= options.tol_theta
 		Constants["tol_filament"]             		= options.tol_filament
@@ -6525,7 +6530,6 @@ def main():
 		Constants["limit_changes"]     			= 1  # reduce delta by half if both limits are reached simultaneously
 		Constants["states"]            			= ["INITIAL", "PRIMARY", "EXHAUSTIVE", "RESTRICTED", "LOCAL", "FINAL"]
 		Constants["user_func"]					= options.function
-		#Constants["user_func_prior"]				= options.function_prior
 		Constants["hardmask"]          			=  True #options.hardmask
 		Constants["ccfpercentage"]     			= options.ccfpercentage/100.
 		Constants["expthreshold"]      			= -10
