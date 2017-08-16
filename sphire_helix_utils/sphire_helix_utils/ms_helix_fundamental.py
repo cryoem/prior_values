@@ -42,6 +42,7 @@ def calculate_priors(
         tol_std=1,
         tol_mean=30,
         method='deg',
+        prior_method='fit',
         plot=False,
         plot_lim=4,
         window_size=3,
@@ -90,6 +91,7 @@ def calculate_priors(
     prior_tracker['tol_mean'] = tol_mean
     prior_tracker['node'] = node
     prior_tracker['apply_method'] = method
+    prior_tracker['prior_method'] = prior_method
     # Execute calculation for each angle
     for idx, angle in enumerate(prior_tracker['angle_names']):
         prior_tracker['tolerance'] = tolerance_list[idx]
