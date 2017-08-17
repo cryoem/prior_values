@@ -35,7 +35,7 @@ def test_sphire_plot_deg_running():
         tol_mean=tol_mean,
         window_size=window_size,
         plot_lim=plot_lim,
-        method=method,
+        outlier_method=method,
         prior_method=prior_method,
         node=node
         )
@@ -74,7 +74,7 @@ def test_sphire_no_plot_deg_running():
         tol_mean=tol_mean,
         window_size=window_size,
         plot_lim=plot_lim,
-        method=method,
+        outlier_method=method,
         prior_method=prior_method,
         node=node
         )
@@ -113,7 +113,7 @@ def test_sphire_plot_std_running():
         tol_mean=tol_mean,
         window_size=window_size,
         plot_lim=plot_lim,
-        method=method,
+        outlier_method=method,
         prior_method=prior_method,
         node=node
         )
@@ -152,7 +152,7 @@ def test_sphire_no_plot_std_running():
         tol_mean=tol_mean,
         window_size=window_size,
         plot_lim=plot_lim,
-        method=method,
+        outlier_method=method,
         prior_method=prior_method,
         node=node
         )

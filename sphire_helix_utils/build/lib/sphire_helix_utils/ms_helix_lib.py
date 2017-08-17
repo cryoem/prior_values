@@ -540,7 +540,7 @@ def loop_filaments(prior_tracker):
 
         # Calculate prior values
         if is_outlier:
-            prior_array = filament[angle_rot]
+            filament[angle_prior] = filament[angle_rot]
         elif prior_tracker['prior_method'] == 'linear':
             mhp.calculate_prior_values_linear(
                 data_rotated=filament[angle_rot],
