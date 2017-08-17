@@ -32,7 +32,7 @@ def test_relion_plot_deg_fit():
         tol_mean=tol_mean,
         window_size=window_size,
         plot_lim=plot_lim,
-        method=method,
+        outlier_method=method,
         prior_method=prior_method,
         node=node
         )
@@ -69,7 +69,7 @@ def test_relion_no_plot_deg_fit():
         tol_mean=tol_mean,
         window_size=window_size,
         plot_lim=plot_lim,
-        method=method,
+        outlier_method=method,
         prior_method=prior_method,
         node=node
         )
@@ -106,7 +106,7 @@ def test_relion_plot_std_fit():
         tol_mean=tol_mean,
         window_size=window_size,
         plot_lim=plot_lim,
-        method=method,
+        outlier_method=method,
         prior_method=prior_method,
         node=node
         )
@@ -143,7 +143,7 @@ def test_relion_no_plot_std_fit():
         tol_mean=tol_mean,
         window_size=window_size,
         plot_lim=plot_lim,
-        method=method,
+        outlier_method=method,
         prior_method=prior_method,
         node=node
         )
