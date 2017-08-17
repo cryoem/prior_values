@@ -136,6 +136,7 @@ from fundamentals import (
 	symclass, cyclic_shift, rotate_params, fdecimate, fpol, goldsearch,
 	fft, fshift
 	)
+from global_def import ERROR
 from morphology import cosinemask, ctf_img_real
 from filter import filt_table
 from math import ceil, atan, degrees, cos, radians
@@ -6903,6 +6904,7 @@ def main():
 				if continue_mode_first:
 					Tracker["constants"]["apply_prior"] = temp_tracker["constants"]["apply_prior"]
 					Tracker["constants"]["outlier_method"] = temp_tracker["constants"]["outlier_method"]
+					Tracker["constants"]["apply_prior_method"] = temp_tracker["constants"]["apply_prior_method"]
 					Tracker["constants"]["tol_psi"] = temp_tracker["constants"]["tol_psi"]
 					Tracker["constants"]["tol_theta"] = temp_tracker["constants"]["tol_theta"]
 					Tracker["constants"]["tol_filament"] = temp_tracker["constants"]["tol_filament"]
