@@ -6225,20 +6225,16 @@ def dump_tracker_to_json(tracker, file_name):
 	numpy_tracker_file = get_numpy_tracker(tracker, file_name)
 	numpy_tracker = {}
 	# Temp stack
-	temp_stack_prior = tracker['constants']['stack_prior']
-	numpy_tracker['stack_prior'] = temp_stack_prior.tolist()
 
 	# Dump numpy tracker
 	with open(numpy_tracker_file, 'w') as write:
 		json.dump(numpy_tracker, write)
 
 	# Dump normal tracker without numpy option
-	tracker['constants']['stack_prior'] = 'NUMPY_TRACKER_STACK'
 	with open(file_name, 'w') as write:
 		json.dump(tracker, write)
 
 	# Put the temp stack back
-	tracker['constants']['stack_prior'] = temp_stack_prior
 
 
 def load_tracker_from_json(file_name):
@@ -6499,7 +6495,6 @@ def main():
 		
 		Constants["stack"]             			= args[0]
 		Constants["apply_prior"]             		= options.apply_prior
-		Constants["stack_prior"]             		= ms_helix_sphire.import_sphire_stack(args[0])
 		Constants["tol_psi"]             		= options.tol_psi
 		Constants["tol_theta"]             		= options.tol_theta
 		Constants["tol_filament"]             		= options.tol_filament
@@ -6919,7 +6914,6 @@ def main():
 					Tracker["constants"]["debug_it"] = temp_tracker["constants"]["debug_it"]
 					Tracker["constants"]["origin_masterdir"] = temp_tracker["constants"]["origin_masterdir"]
 					Tracker["constants"]["stack"] = temp_tracker["constants"]["stack"]
-					Tracker["constants"]["stack_prior"] = temp_tracker["constants"]["stack_prior"]
 					masterdir = temp_tracker["constants"]["masterdir"]
 
 					line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"
