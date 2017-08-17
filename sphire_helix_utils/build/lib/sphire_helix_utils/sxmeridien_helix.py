@@ -6225,20 +6225,16 @@ def dump_tracker_to_json(tracker, file_name):
 	numpy_tracker_file = get_numpy_tracker(tracker, file_name)
 	numpy_tracker = {}
 	# Temp stack
-	temp_stack_prior = tracker['constants']['stack_prior']
-	numpy_tracker['stack_prior'] = temp_stack_prior.tolist()
 
 	# Dump numpy tracker
 	with open(numpy_tracker_file, 'w') as write:
 		json.dump(numpy_tracker, write)
 
 	# Dump normal tracker without numpy option
-	tracker['constants']['stack_prior'] = 'NUMPY_TRACKER_STACK'
 	with open(file_name, 'w') as write:
 		json.dump(tracker, write)
 
 	# Put the temp stack back
-	tracker['constants']['stack_prior'] = temp_stack_prior
 
 
 def load_tracker_from_json(file_name):
@@ -6326,6 +6322,7 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 			plot=tracker['constants']['dont_apply_plot'],
 			plot_lim=4,
 			window_size=tracker['constants']['window_size'],
+			force_outlier=tracker['constants']['force_outlier'],
 			remove_outlier=False,
 			node=procid
 			)
@@ -6419,6 +6416,7 @@ def main():
 	parser.add_option("--tol_std",              type="float",             default=1.5,                     help="Tolerance for the standard deviation of the angular distribution (default 1.5)")
 	parser.add_option("--tol_mean",              type="float",             default=30,                     help="Tolerance for the mean calculation (default 30)")
 	parser.add_option("--window_size",              type="int",             default=5,                     help="Window size for the running average calcuatlion (default 5)")
+	parser.add_option("--force_outlier",              action="store_true",             default=False,                     help="Force outlier to match the filament character (default False)")
 	parser.add_option("--continue_name",              type="string",             default='CONTINUE',                     help="Name for the continue run folder")
 	parser.add_option("--debug_it",              action="store_true",             default=False,                     help="Debuging mode for debug output")
 	
@@ -6497,7 +6495,6 @@ def main():
 		
 		Constants["stack"]             			= args[0]
 		Constants["apply_prior"]             		= options.apply_prior
-		Constants["stack_prior"]             		= ms_helix_sphire.import_sphire_stack(args[0])
 		Constants["tol_psi"]             		= options.tol_psi
 		Constants["tol_theta"]             		= options.tol_theta
 		Constants["tol_filament"]             		= options.tol_filament
@@ -6507,6 +6504,7 @@ def main():
 		Constants["apply_prior_method"]             	= options.apply_prior_method
 		Constants["dont_apply_plot"]             	= options.dont_apply_plot
 		Constants["window_size"]             		= options.window_size
+		Constants["force_outlier"]             		= options.force_outlier
 		Constants["continue_name"]             		= options.continue_name
 		Constants["numpy_tracker_prefix"]		= 'numpy_'
 		Constants["debug_it"]		= options.debug_it
@@ -6903,6 +6901,7 @@ def main():
 				Tracker["directory"]		= os.path.join(Tracker["constants"]["masterdir"],"main%03d"%Tracker["mainiteration"])
 				if continue_mode_first:
 					Tracker["constants"]["apply_prior"] = temp_tracker["constants"]["apply_prior"]
+					Tracker["constants"]["force_outlier"] = temp_tracker["constants"]["force_outlier"]
 					Tracker["constants"]["outlier_method"] = temp_tracker["constants"]["outlier_method"]
 					Tracker["constants"]["apply_prior_method"] = temp_tracker["constants"]["apply_prior_method"]
 					Tracker["constants"]["dont_apply_plot"] = temp_tracker["constants"]["dont_apply_plot"]
@@ -6915,7 +6914,6 @@ def main():
 					Tracker["constants"]["debug_it"] = temp_tracker["constants"]["debug_it"]
 					Tracker["constants"]["origin_masterdir"] = temp_tracker["constants"]["origin_masterdir"]
 					Tracker["constants"]["stack"] = temp_tracker["constants"]["stack"]
-					Tracker["constants"]["stack_prior"] = temp_tracker["constants"]["stack_prior"]
 					masterdir = temp_tracker["constants"]["masterdir"]
 
 					line = strftime("%Y-%m-%d_%H:%M:%S", localtime()) + " =>"

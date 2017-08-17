@@ -42,48 +42,56 @@ def identify_outliers(prior_tracker):
     """
     Identify outliers: if one angle is outlier, the whole filament is marked as an outlier.
 
+    # No outliers
     >>> data = np.array([(0, 0, 0), (0, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
     >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
     >>> identify_outliers(prior_tracker)
     >>> print(prior_tracker['array']['outlier'])
     [0 0]
 
+    # Filament 1 and Filament 2 outliers | Angle 1 and Angle 2 outlier
     >>> data = np.array([(1, 1, 0), (1, 1, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
     >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
     >>> identify_outliers(prior_tracker)
     >>> print(prior_tracker['array']['outlier'])
     [1 1]
 
+    # Filament 2 outliers | Angle 1 and Angle 2 outlier
     >>> data = np.array([(0, 0, 0), (1, 1, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
     >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
     >>> identify_outliers(prior_tracker)
     >>> print(prior_tracker['array']['outlier'])
     [0 1]
 
+    # Filament 1 outliers | Angle 1 and Angle 2 outlier
     >>> data = np.array([(1, 1, 0), (0, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
     >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
     >>> identify_outliers(prior_tracker)
     >>> print(prior_tracker['array']['outlier'])
     [1 0]
 
+    # Filament 2 outliers | Angle 1 outlier
     >>> data = np.array([(0, 0, 0), (1, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
     >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
     >>> identify_outliers(prior_tracker)
     >>> print(prior_tracker['array']['outlier'])
     [0 1]
 
+    # Filament 2 outliers | Angle 2 outlier
     >>> data = np.array([(0, 0, 0), (0, 1, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
     >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
     >>> identify_outliers(prior_tracker)
     >>> print(prior_tracker['array']['outlier'])
     [0 1]
 
+    # Filament 1 outliers | Angle 1 outlier
     >>> data = np.array([(1, 0, 0), (0, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
     >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
     >>> identify_outliers(prior_tracker)
     >>> print(prior_tracker['array']['outlier'])
     [1 0]
 
+    # Filament 1 outliers | Angle 2 outlier
     >>> data = np.array([(0, 1, 0), (0, 0, 0)], dtype=[('outlier_angle1', '<i8'), ('outlier_angle2', '<i8'), ('outlier', '<i8')])
     >>> prior_tracker = {'idx_angle': 0, 'array': data, 'angle_names': [['angle1'], ['angle2']]}
     >>> identify_outliers(prior_tracker)
@@ -119,6 +127,7 @@ def combine_and_order_filaments(prior_tracker):
     >>> data_filament2 = np.array([(3, 2), (4, 1)], dtype=[('col1', '<i8'), ('col2', '<i8')])
     >>> data_filament = np.array([data_filament1, data_filament2])
 
+    # Combine arrays | order col1 > col2
     >>> prior_tracker = {'array': data, 'array_filament': data_filament, 'order': ['col1', 'col2']}
     >>> combine_and_order_filaments(prior_tracker)
     >>> print(prior_tracker['array'][0])
@@ -130,6 +139,7 @@ def combine_and_order_filaments(prior_tracker):
     >>> print(prior_tracker['array'][3])
     (4, 1)
 
+    # Combine arrays | order col2 > col1
     >>> prior_tracker = {'array': data, 'array_filament': data_filament, 'order': ['col2', 'col1']}
     >>> combine_and_order_filaments(prior_tracker)
     >>> print(prior_tracker['array'][0])
@@ -163,7 +173,7 @@ def import_data_sphire(tracker, params_file=None, index_file=None):
 
     >>> import shutil
 
-    # Sphire test case - File
+    # Tracker is filename
     >>> tracker = 'bdb:../tests/stack'
     >>> params_file_raw = '../tests/index_raw.txt'
     >>> index_file_raw = '../tests/params_raw.txt'
@@ -188,7 +198,7 @@ def import_data_sphire(tracker, params_file=None, index_file=None):
     >>> os.remove(params_file)
     >>> os.remove(index_file)
 
-    # Sphire test case - Dictionary - array
+    # Tracker is dictionary and contains array
     >>> tracker = {'constants': {'stack_prior': prior_tracker['array'][['ptcl_source_image', 'filament', 'data_n']]}}
     >>> shutil.copy2(index_file_raw, 'index.txt')
     >>> shutil.copy2(params_file_raw, 'params.txt')
@@ -210,7 +220,7 @@ def import_data_sphire(tracker, params_file=None, index_file=None):
     >>> os.remove(params_file)
     >>> os.remove(index_file)
 
-    # Sphire test case - Dictionary - filename
+    # Tracker is dictionary and contains filename
     >>> tracker = {'constants': {'stack': 'bdb:../tests/stack'}}
     >>> shutil.copy2(index_file_raw, 'index.txt')
     >>> shutil.copy2(params_file_raw, 'params.txt')
@@ -289,7 +299,7 @@ def import_data_relion(file_name):
     """
     Import a relion star file
 
-    # Relion test case - filename
+    # Tracker is filename
     >>> file_name = '../tests/data_test.star'
     >>> prior_tracker = import_data_relion(file_name=file_name)
     >>> print(len(prior_tracker))
@@ -344,6 +354,8 @@ def import_data_relion(file_name):
 
 def expand_and_order_array(prior_tracker):
     """
+    Create an array with all columns present and sort it:
+    micrograph_id > filament_id > segment_id
 
     >>> data = np.array([(0, 1, 2, 3, 4), (0, 1, 2, 3, 4), (0, 1, 2, 3, 4), (0, 1, 2, 3, 4)], dtype=[('col1', '<i8'), ('col2', '<i8'), ('col3', '<i8'), ('angle1', '<i8'), ('angle2', '<i8')])
     >>> prior_tracker = {}
@@ -402,7 +414,9 @@ def expand_and_order_array(prior_tracker):
 
 
 def loop_filaments(prior_tracker):
-    """Loop over the filament to calculate prior values
+    """
+    Loop over the filament to calculate prior values
+
     >>> prior_tracker = {}
     >>> prior_tracker['array_filament'] = np.array([[ ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0, 38.32375, 79.75458, 278.43793, 8.00109, 1.00109, 0.19693, 0.73653, 91259.15828, 0, 0, 6.042718322764362e-154, 79.75458, 2314885531238936880, 9.162199477420751e-72, 278.43793, 4051047449742946336, 3467807035425300512), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 1, 35.83593, 55.19391, 350.15674, -1.99891, -3.99891, 0.70511, 0.73476, 91040.31356, 1, 1, 4.948400661721011e+173, 55.19391, 8935143215481254912, 0.0, 350.15674, 8935145457454311936, 3487650908667907), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 2, 39.17223, 77.94179, 48.28169, -7.99891, -2.99891, 0.45521, 0.70617, 87497.71089, 2, 2, 0.0, 77.94179, 5157209670381677, 5.075883983234376e-116, 48.28169, 8317304086824383232, 8313495831334709343), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 3, 33.44401, 80.17834, 187.50038, -2.99891, -7.74279, 0.23672, 0.70772, 87689.01591, 3, 3, 0.0, 80.17834, 7595444411327411305, 7.698438237169649e+218, 187.50038, 1824520799039935077, 113044881408), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 4, 38.73295, 78.84809, 255.00044, 2.00109, 18.00109, 0.21688, 0.74511, 92321.562, 4, 4, 9.076859094468509e+223, 78.84809, 0, 0.0, 255.00044, 0, 0), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 5, 23.93829, 71.0277, 94.21904, -6.99891, 10.00109, 0.48858, 0.72281, 89558.54532, 5, 5, 0.0, 71.0277, 0, 0.0, 94.21904, 7161082258284898662, 6868064479304640884), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 6, 37.77144, 77.47843, 97.96918, -7.99891, -4.99891, 0.4357, 0.70789, 87710.85716, 6, 6, 0.0, 77.47843, 0, 0.0, 97.96918, 0, 0)]], dtype=[('ptcl_source_image', 'S200'), ('filament', 'S200'), ('data_n', '<i8'), ('phi', '<f8'), ('theta', '<f8'), ('psi', '<f8'), ('shift_x', '<f8'), ('shift_y', '<f8'), ('err1', '<f8'), ('err2', '<f8'), ('norm', '<f8'), ('source_n', '<i8'), ('stack_idx', '<i8'), ('theta_prior', '<f8'), ('theta_rot', '<f8'), ('outlier_theta', '<i8'), ('psi_prior', '<f8'), ('psi_rot', '<f8'), ('outlier_psi', '<i8'), ('outlier', '<i8')])
     >>> prior_tracker['array'] = np.array([ ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0, 38.32375, 79.75458, 278.43793, 8.00109, 1.00109, 0.19693, 0.73653, 91259.15828, 0, 0, 6.042718322764362e-154, 79.75458, 2314885531238936880, 9.162199477420751e-72, 278.43793, 4051047449742946336, 3467807035425300512), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 1, 35.83593, 55.19391, 350.15674, -1.99891, -3.99891, 0.70511, 0.73476, 91040.31356, 1, 1, 4.948400661721011e+173, 55.19391, 8935143215481254912, 0.0, 350.15674, 8935145457454311936, 3487650908667907), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 2, 39.17223, 77.94179, 48.28169, -7.99891, -2.99891, 0.45521, 0.70617, 87497.71089, 2, 2, 0.0, 77.94179, 5157209670381677, 5.075883983234376e-116, 48.28169, 8317304086824383232, 8313495831334709343), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 3, 33.44401, 80.17834, 187.50038, -2.99891, -7.74279, 0.23672, 0.70772, 87689.01591, 3, 3, 0.0, 80.17834, 7595444411327411305, 7.698438237169649e+218, 187.50038, 1824520799039935077, 113044881408), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 4, 38.73295, 78.84809, 255.00044, 2.00109, 18.00109, 0.21688, 0.74511, 92321.562, 4, 4, 9.076859094468509e+223, 78.84809, 0, 0.0, 255.00044, 0, 0), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 5, 23.93829, 71.0277, 94.21904, -6.99891, 10.00109, 0.48858, 0.72281, 89558.54532, 5, 5, 0.0, 71.0277, 0, 0.0, 94.21904, 7161082258284898662, 6868064479304640884), ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 6, 37.77144, 77.47843, 97.96918, -7.99891, -4.99891, 0.4357, 0.70789, 87710.85716, 6, 6, 0.0, 77.47843, 0, 0.0, 97.96918, 0, 0)], dtype=[('ptcl_source_image', 'S200'), ('filament', 'S200'), ('data_n', '<i8'), ('phi', '<f8'), ('theta', '<f8'), ('psi', '<f8'), ('shift_x', '<f8'), ('shift_y', '<f8'), ('err1', '<f8'), ('err2', '<f8'), ('norm', '<f8'), ('source_n', '<i8'), ('stack_idx', '<i8'), ('theta_prior', '<f8'), ('theta_rot', '<f8'), ('outlier_theta', '<i8'), ('psi_prior', '<f8'), ('psi_rot', '<f8'), ('outlier_psi', '<i8'), ('outlier', '<i8')])
@@ -436,6 +450,7 @@ def loop_filaments(prior_tracker):
     >>> prior_tracker['filament_id'] = 'filament'
     >>> prior_tracker['order'] = 'source_n'
     >>> prior_tracker['idx_angle_rot'] = 2
+    >>> prior_tracker['force_outlier'] = True
     >>> prior_tracker = loop_filaments(prior_tracker=prior_tracker)
     >>> print(isinstance(prior_tracker, dict))
     True
@@ -533,10 +548,13 @@ def loop_filaments(prior_tracker):
                 )
 
         # Mark as outlier
-        if is_outlier:
-            filament['outlier_{0}'.format(angle)].fill(1)
-        else:
-            filament['outlier_{0}'.format(angle)].fill(0)
+        mhp.mark_as_outlier(
+            array=filament['outlier_{0}'.format(angle)],
+            is_outlier=is_outlier,
+            force_outlier=prior_tracker['force_outlier'],
+            inside_tol_idx=inside_tol_idx,
+            outside_tol_idx=outside_tol_idx
+            )
 
         # Calculate prior values
         if is_outlier:
@@ -593,7 +611,7 @@ def export_data_relion(prior_tracker):
     """
     Export the calculated priors for relion
 
-    # Test no outliers
+    # Export without outliers | Remove outlier from file
     >>> data = np.array([(0, 1, 2, 3, 0), (5, 6, 7, 8, 0), (10, 11, 12, 13, 0), (15, 16, 17, 18, 0)], dtype=[('col1', '<i8'), ('col2', '<i8'), ('col3', '<i8'), ('angle1', '<i8'), ('outlier', '<i8')])
     >>> output_columns = ['col1', 'col2', 'col3']
     >>> output_file_name = 'doctest'
@@ -611,7 +629,8 @@ def export_data_relion(prior_tracker):
     ...     print(lines[-1].rstrip('\\n'))
          15     16     17
     >>> os.remove(output_file) 
-    
+
+    # Test with one outlier in the beginning | Remove outlier from file
     >>> data = np.array([(0, 1, 2, 3, 1), (5, 6, 7, 8, 0), (10, 11, 12, 13, 0), (15, 16, 17, 18, 0)], dtype=[('col1', '<i8'), ('col2', '<i8'), ('col3', '<i8'), ('angle1', '<i8'), ('outlier', '<i8')])
     >>> output_columns = ['col1', 'col2', 'col3']
     >>> output_file_name = 'doctest'
@@ -630,6 +649,7 @@ def export_data_relion(prior_tracker):
          15     16     17
     >>> os.remove(output_file) 
 
+    # Test with one outlier in the beginning and one in the end | Remove outlier from file
     >>> data = np.array([(0, 1, 2, 3, 1), (5, 6, 7, 8, 0), (10, 11, 12, 13, 0), (15, 16, 17, 18, 1)], dtype=[('col1', '<i8'), ('col2', '<i8'), ('col3', '<i8'), ('angle1', '<i8'), ('outlier', '<i8')])
     >>> output_columns = ['col1', 'col2', 'col3']
     >>> output_file_name = 'doctest'
@@ -648,6 +668,7 @@ def export_data_relion(prior_tracker):
          10     11     12
     >>> os.remove(output_file) 
 
+    # Test with one outlier in the beginning and one in the end | Dont remove outliers from file
     >>> data = np.array(
     ...     [(0, 1, 2, 3, 1), (5, 6, 7, 8, 0), (10, 11, 12, 13, 0), (15, 16, 17, 18, 1)],
     ...     dtype=[('col1', '<i8'), ('col2', '<i8'), ('col3', '<i8'), ('angle1', '<i8'), ('outlier', '<i8')]
@@ -698,7 +719,7 @@ def export_data_sphire(prior_tracker):
     >>> output_file_params = 'params'
     >>> output_file_index = 'index'
 
-    # Test no outliers - tracker dict RESTRICTED
+    # One outlier | tracker dict RESTRICTED | Dont discard outliers
     >>> shutil.copy2(index_file_raw, 'index.txt')
     >>> shutil.copy2(params_file_raw, 'params.txt')
     >>> prior_tracker = {
@@ -742,7 +763,7 @@ def export_data_sphire(prior_tracker):
     >>> os.remove('{0}.txt'.format(output_file_params))
     >>> os.remove('{0}_prior.txt'.format(output_file_params))
 
-    # Test no outliers - tracker dict outlier RESTRICTED
+    # One outlier | tracker dict outlier RESTRICTED | Discard outliers
     >>> shutil.copy2(index_file_raw, 'index.txt')
     >>> shutil.copy2(params_file_raw, 'params.txt')
     >>> prior_tracker = {
@@ -786,7 +807,7 @@ def export_data_sphire(prior_tracker):
     >>> os.remove('{0}.txt'.format(output_file_params))
     >>> os.remove('{0}_prior.txt'.format(output_file_params))
 
-    # Test no outliers - tracker dict outlier EXHAUSTIVE
+    # One outlier | tracker dict outlier EXHAUSTIVE | Discard outliers
     >>> shutil.copy2(index_file_raw, 'index.txt')
     >>> shutil.copy2(params_file_raw, 'params.txt')
     >>> prior_tracker = {
@@ -830,7 +851,7 @@ def export_data_sphire(prior_tracker):
     >>> os.remove('{0}.txt'.format(output_file_params))
     >>> os.remove('{0}_prior.txt_not_applied.txt'.format(output_file_params))
 
-    # Test no outliers - tracker dict outlier EXHAUSTIVE
+    # One outliers | tracker dict outlier EXHAUSTIVE | Discard outliers
     >>> shutil.copy2(index_file_raw, 'index.txt')
     >>> shutil.copy2(params_file_raw, 'params.txt')
     >>> prior_tracker = {
@@ -894,8 +915,72 @@ def export_data_sphire(prior_tracker):
 
 
 plot_index = 0
-def plot_polar(name, array, angle_rotation, angle_max, angle_min, mean=None, tol=None, label=None, old_mean=None, plot=None):
-    """Do a polar plot"""
+def plot_polar(name, array, angle_rotation, angle_max, angle_min, mean=None, tol=None, old_mean=None, plot={'prefix': 'DEFAULT'}):
+    """
+    Do a polar plot
+
+    # Test default values | angle_max [0, 360)
+    >>> plot_polar(
+    ...     name='doctest',
+    ...     array=np.array([0, 1, 2, 3]),
+    ...     angle_rotation=3,
+    ...     angle_max=360,
+    ...     angle_min=0
+    ...     )
+    >>> os.path.exists('DEFAULT_0_doctest.png')
+    True
+    >>> os.remove('DEFAULT_0_doctest.png')
+
+    # Test default values | angle (-180, 180]
+    >>> plot_polar(
+    ...     name='doctest',
+    ...     array=np.array([0, 1, 2, 3]),
+    ...     angle_rotation=3,
+    ...     angle_max=180,
+    ...     angle_min=-180
+    ...     )
+    >>> os.path.exists('DEFAULT_1_doctest.png')
+    True
+    >>> os.remove('DEFAULT_1_doctest.png')
+
+    # Test default values | angle [0, 90]
+    >>> plot_polar(
+    ...     name='doctest',
+    ...     array=np.array([0, 1, 2, 3]),
+    ...     angle_rotation=3,
+    ...     angle_max=90,
+    ...     angle_min=0
+    ...     )
+    >>> os.path.exists('DEFAULT_2_doctest.png')
+    True
+    >>> os.remove('DEFAULT_2_doctest.png')
+
+    # Test no default values | angle_max [0, 360)
+    >>> plot_polar(
+    ...     name='doctest',
+    ...     array=np.array([0, 1, 2, 3]),
+    ...     angle_rotation=3,
+    ...     angle_max=360,
+    ...     angle_min=0,
+    ...     mean=20,
+    ...     tol=5,
+    ...     old_mean=8
+    ...     )
+    >>> os.path.exists('DEFAULT_3_doctest.png')
+    True
+    >>> os.remove('DEFAULT_3_doctest.png')
+
+    :name: Name of the plot:
+    :array: Array to plot:
+    :angle_rotation: Specifies the zero position of the plot:
+    :angle_max: Maximum angle lable:
+    :angle_min: Minimum angle lable:
+    :mean: Value of the mean:
+    :tol: Value of the tolerance value:
+    :old_mean: Value of the old mean:
+    :plot: Plot dictionary; Need to have the key prefix:
+    :return: None, writes image to disc:
+    """
     global plot_index
     # radar green, solid grid lines
     plt.rc('grid', color='#316931', linewidth=1, linestyle='-')
