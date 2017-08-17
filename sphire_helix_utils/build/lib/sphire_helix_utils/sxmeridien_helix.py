@@ -6905,6 +6905,7 @@ def main():
 					Tracker["constants"]["apply_prior"] = temp_tracker["constants"]["apply_prior"]
 					Tracker["constants"]["outlier_method"] = temp_tracker["constants"]["outlier_method"]
 					Tracker["constants"]["apply_prior_method"] = temp_tracker["constants"]["apply_prior_method"]
+					Tracker["constants"]["dont_apply_plot"] = temp_tracker["constants"]["dont_apply_plot"]
 					Tracker["constants"]["tol_psi"] = temp_tracker["constants"]["tol_psi"]
 					Tracker["constants"]["tol_theta"] = temp_tracker["constants"]["tol_theta"]
 					Tracker["constants"]["tol_filament"] = temp_tracker["constants"]["tol_filament"]
