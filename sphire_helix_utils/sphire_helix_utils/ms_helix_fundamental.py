@@ -43,13 +43,16 @@ def calculate_priors(
         tol_mean=30,
         outlier_method='deg',
         prior_method='fit',
+        force_outlier=False,
         plot=False,
         plot_lim=4,
         window_size=3,
         remove_outlier=False,
         node=0
         ):
-    """Calculate prior values for the parameters
+    """
+    Calculate prior values for the provided parameters
+
     prior_tracker keys:
     array
     order
@@ -119,6 +122,7 @@ def calculate_priors(
     prior_tracker['apply_method'] = outlier_method
     prior_tracker['prior_method'] = prior_method
     prior_tracker['do_discard_outlier'] = remove_outlier
+    prior_tracker['force_outlier'] = force_outlier
     # Execute calculation for each angle
     for idx, angle in enumerate(prior_tracker['angle_names']):
         prior_tracker['tolerance'] = tolerance_list[idx]
