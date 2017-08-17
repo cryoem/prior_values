@@ -6326,7 +6326,7 @@ def calculate_prior_values(tracker, blockdata, outlier_file, chunk_file, params_
 			plot=tracker['constants']['dont_apply_plot'],
 			plot_lim=4,
 			window_size=tracker['constants']['window_size'],
-			remove_outliers=False,
+			remove_outlier=False,
 			node=procid
 			)
 
