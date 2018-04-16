@@ -85,6 +85,7 @@ def calculate_priors(
     print('-> tol_mean:', tol_mean)
     print('-> outlier_method:', outlier_method)
     print('-> prior_method:', prior_method)
+    print('-> force_outlier:', force_outlier)
     print('-> plot:', plot)
     print('-> plot_lim:', plot_lim)
     print('-> window_size:', window_size)
@@ -156,7 +157,13 @@ def calculate_priors(
             ))
         return None
 
-    return prior_tracker['array'][prior_tracker['outlier']]
+    return_list = [
+        prior_tracker['array'][prior_tracker['outlier']],
+        '{0}_not_applied.txt'.format('{0}_prior.txt'.format(prior_tracker['output_file_params'])),
+        '{0}_not_applied.txt'.format('{0}_prior.txt'.format(prior_tracker['output_file_index'])),
+        ]
+
+    return return_list
 
 
 if __name__ == '__main__':

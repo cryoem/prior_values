@@ -1,3 +1,4 @@
+README.md
 setup.py
 sphire_helix_utils/__init__.py
 sphire_helix_utils/ms_helix_fundamental.py

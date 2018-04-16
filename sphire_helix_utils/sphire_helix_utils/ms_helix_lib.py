@@ -993,7 +993,10 @@ def plot_polar(name, array, angle_rotation, angle_max, angle_min, mean=None, tol
 
     # make a square figure
     fig = plt.figure(figsize=(size, size))
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], polar=True, axisbg='#d5de9c')
+    try:
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], polar=True, axisbg='#d5de9c')
+    except AttributeError:
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], polar=True, facecolor='#d5de9c')
 
     # Change the labels
     ax.set_yticklabels([])
