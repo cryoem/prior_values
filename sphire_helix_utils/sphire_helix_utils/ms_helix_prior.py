@@ -358,7 +358,10 @@ def calculate_prior_values_fit(data_rotated, prior_array, inside_tol_idx, plot={
     chi_min = 99999999
     fit_min = 0
     for fit_dim in range(1, 4):
-        params = np.polyfit(inside_tol_idx, data_rotated[inside_tol_idx], fit_dim)
+        try:
+            params = np.polyfit(inside_tol_idx, data_rotated[inside_tol_idx], fit_dim)
+        except ValueError:
+            continue
         func = func_dict[fit_dim]['func']
         func_dict[fit_dim]['params'] = params
 
@@ -374,24 +377,29 @@ def calculate_prior_values_fit(data_rotated, prior_array, inside_tol_idx, plot={
             chi_min = chi_square
             fit_min = fit_dim
 
-    func_min = func_dict[fit_min]['func']
-    params_min = func_dict[fit_min]['params']
-    for idx in range(len(data_rotated)):
-        prior_array[idx] = func_min(idx, *params_min)
+    try:
+        func_min = func_dict[fit_min]['func']
+    except KeyError:
+        for idx, entry in enumerate(data_rotated):
+            prior_array[idx] = entry
+    else:
+        params_min = func_dict[fit_min]['params']
+        for idx in range(len(data_rotated)):
+            prior_array[idx] = func_min(idx, *params_min)
 
-    if plot['do_plot']:
-        global fit_index
-        plt.plot(inside_tol_idx, data_rotated[inside_tol_idx], 'x', label='fitted data')
-        x = np.linspace(0, len(data_rotated)-1, 10000)
-        plt.plot(x, func_min(x, *params_min), label='regression')
-        plt.legend(loc='best')
-        plt.xlabel('Particle helix id')
-        plt.ylabel('Relative angle / degree')
-        plt.grid()
-        plt.title('fit_dim: {0}'.format(fit_min))
-        plt.savefig('{0}_fit_{1}.png'.format(plot['prefix'], fit_index))
-        plt.clf()
-        fit_index += 1
+        if plot['do_plot']:
+            global fit_index
+            plt.plot(inside_tol_idx, data_rotated[inside_tol_idx], 'x', label='fitted data')
+            x = np.linspace(0, len(data_rotated)-1, 10000)
+            plt.plot(x, func_min(x, *params_min), label='regression')
+            plt.legend(loc='best')
+            plt.xlabel('Particle helix id')
+            plt.ylabel('Relative angle / degree')
+            plt.grid()
+            plt.title('fit_dim: {0}'.format(fit_min))
+            plt.savefig('{0}_fit_{1}.png'.format(plot['prefix'], fit_index))
+            plt.clf()
+            fit_index += 1
 
 
 def mark_as_outlier(array, is_outlier, force_outlier, inside_tol_idx, outside_tol_idx):
