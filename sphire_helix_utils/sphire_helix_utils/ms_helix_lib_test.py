@@ -1,3 +1,4 @@
+import sparx as sp
 import ms_helix_lib         # it generates the "close failed in file object destructor: IOError: [Errno 9] Bad file descriptor" error but the tests are working
 import unittest
 from numpy import array as np_array
