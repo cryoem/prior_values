@@ -2,7 +2,27 @@ import sparx as sp
 import ms_helix_prior
 import unittest
 from numpy import array as np_array
+from numpy import int64 as np_int64
+from numpy import float64 as np_float64
 from numpy import ndarray, array_equal
+from os import remove,path
+from subprocess import Popen,PIPE
+
+func_linear = lambda x, a, b: a * x + b
+func_dict = { 1: {'func': func_linear, 'params': None}}
+
+def get_list_of_created_file(cmd=["ls *.png"]):
+    """ Given a shell command it will give back the string of the console output"""
+    proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
+    o, e = proc.communicate()
+    return o
+
+
+def clean_up(stuff_to_remove):
+    for f in stuff_to_remove:
+        if path.exists(f) and path.isfile(f):
+            remove(f)
+
 
 def generate_prior_tracker(apply_method = "std"):
     prior_tracker = dict()
@@ -41,11 +61,12 @@ def generate_prior_tracker(apply_method = "std"):
     prior_tracker['force_outlier'] = True
     return prior_tracker
 
+
 class Test_wrapped_distribution(unittest.TestCase):
     def test_wrapped_distribution(self):
-        m,s=ms_helix_prior.wrapped_distribution( ndarray(shape=(5,), buffer=np_array([ 79.75458,  55.19391,  77.94179 , 80.17834  ,78.84809 , 71.0277,   77.47843]), dtype=float) )
-        self.assertTrue( [74.450725367629005, 74.450725367629005, 74.450725367629005, 74.450725367629005, 74.450725367629005] == m)
-        self.assertTrue( [9.6228602296022423, 9.6228602296022423, 9.6228602296022423, 9.6228602296022423, 9.6228602296022423] == s)
+        m,s=ms_helix_prior.wrapped_distribution(ndarray(shape=(7,), buffer=np_array([ 79.75458,  55.19391,  77.94179 , 80.17834  ,78.84809 , 71.0277,   77.47843]), dtype=float) )
+        self.assertTrue( [74.393744681484051, 74.393744681484051, 74.393744681484051, 74.393744681484051, 74.393744681484051, 74.393744681484051, 74.393744681484051] == m)
+        self.assertTrue( [8.3077762527065957, 8.3077762527065957, 8.3077762527065957, 8.3077762527065957, 8.3077762527065957, 8.3077762527065957, 8.3077762527065957] == s)
 
 
 
@@ -53,74 +74,162 @@ class Test_get_filaments(unittest.TestCase):
     def test_get_filaments(self):
         prior_tracker =generate_prior_tracker()
         prior_tracker_after_get_filament=ms_helix_prior.get_filaments(prior_tracker)
-
         self.assertTrue(array_equal(prior_tracker['array_filament'] , prior_tracker_after_get_filament['array_filament']))
 
 
 
 class Test_get_local_mean(unittest.TestCase):
     def test_get_local_mean(self):
-        pass
-
+        rotate_angle, nr_outliers = ms_helix_prior.get_local_mean(ndarray(shape=(7,), buffer=np_array([1.81279, -22.74788, 0., 2.23655, 0.9063, -6.91409, -0.46336]), dtype=float), rotate_angle=np_float64(77.94179),tolerance=30)
+        self.assertTrue(0 == nr_outliers and 74.34612 ==rotate_angle )
 
 
 class Test_rotate_angles_median(unittest.TestCase):
-    def test_rotate_angles_median(self):
-        pass
+    output_dir ='./prior_images_0'
+    def test_rotate_angles_median_without_plot_and_with_odd_array(self):
+        ar = ndarray(shape=(7,), buffer=np_array([ 79.75458,  55.19391,  77.94179 , 80.17834  ,78.84809 , 71.0277,   77.47843]), dtype=float)
+        self.assertTrue(77.94179 == ms_helix_prior.rotate_angles_median(ar, {'do_plot': False, 'output_dir': self.output_dir }))
+        clean_up(get_list_of_created_file(cmd=["ls ./*.png"]).split("\n"))
+
+    def test_rotate_angles_median_with_plot_and_with_odd_array(self):
+        ar = ndarray(shape=(7,), buffer=np_array([79.75458, 55.19391, 77.94179, 80.17834, 78.84809, 71.0277, 77.47843]), dtype=float)
+        self.assertTrue(77.94179 == ms_helix_prior.rotate_angles_median(ar, {'do_plot': True,'output_dir': self.output_dir, 'prefix': 'DEFAULT'}))
+        clean_up(get_list_of_created_file(cmd=["ls ./*.png"]).split("\n"))
+
+    def test_rotate_angles_median_without_plot_and_with_even_array(self):
+        ar = ndarray(shape=(8,), buffer=np_array([ 79.75458,  55.19391,  77.94179 , 80.17834  ,78.84809 , 71.0277,   77.47843, 77.8888]), dtype=float)
+        self.assertTrue(77.94179 == ms_helix_prior.rotate_angles_median(ar, {'do_plot': False, 'output_dir': self.output_dir }))
+        clean_up(get_list_of_created_file(cmd=["ls ./*.png"]).split("\n"))
+
+    def test_rotate_angles_median_with_plot_and_with_even_array(self):
+        ar = ndarray(shape=(8,), buffer=np_array([79.75458, 55.19391, 77.94179, 80.17834, 78.84809, 71.0277, 77.47843,  77.8888]), dtype=float)
+        self.assertTrue(77.94179 == ms_helix_prior.rotate_angles_median(ar, {'do_plot': True,'output_dir': self.output_dir, 'prefix': 'DEFAULT'}))
+        clean_up(get_list_of_created_file(cmd=["ls ./*.png"]).split("\n"))
 
 
 
 class Test_subtract_and_adjust_angles(unittest.TestCase):
-    def test_subtract_and_adjust_angles(self):
-        pass
+
+    def test_subtract_and_adjust_angles_array_input(self):
+        ar = ndarray(shape=(7,), buffer=np_array([79.75458, 55.19391, 77.94179, 80.17834, 78.84809, 71.0277, 77.47843]), dtype=float)
+        self.assertTrue(None == ms_helix_prior.subtract_and_adjust_angles(data_rotated=ar,  value=0,  angle_max=180,  angle_min=-180  ))
+
+    def test_subtract_and_adjust_angles_not_adjust(self):
+        self.assertTrue( 111 == ms_helix_prior.subtract_and_adjust_angles(data_rotated=np_int64(111), value=0, angle_max=180, angle_min=-180))
+
+    def test_subtract_and_adjust_angles_smaller_than_min_angle(self):
+        self.assertTrue( 368 == ms_helix_prior.subtract_and_adjust_angles(data_rotated=np_int64(8), value=0, angle_max=180, angle_min=10))
+
+    def test_subtract_and_adjust_angles_bigger_than_max_angle(self):
+        self.assertTrue(-152 == ms_helix_prior.subtract_and_adjust_angles(data_rotated=np_int64(208), value=0, angle_max=180, angle_min=10))
+
+    def test_subtract_and_adjust_angles_bigger_than_max_angle1(self):
+        with self.assertRaises(AssertionError):
+            ms_helix_prior.subtract_and_adjust_angles(data_rotated=208, value=0, angle_max=180, angle_min=10)
 
 
 
 class Test_rotate_angles_mean(unittest.TestCase):
     def test_rotate_angles_mean(self):
-        pass
+        rotate_angle, nr_outliers = ms_helix_prior.rotate_angles_mean(data_rotated=ndarray(shape=(7,), buffer=np_array([1.81279, -22.74788, 0., 2.23655, 0.9063, -6.91409, -0.46336]), dtype=float), rotate_angle=np_float64(77.94179), tol_mean=30)
+        self.assertTrue(0 == nr_outliers and 74.34612 ==rotate_angle )
 
 
 
 class Test_identify_outliers_deg(unittest.TestCase):
-    def test_identify_outliers_deg(self):
-        pass
+    def test_identify_outliers_deg_without_outliers(self):
+        ar =ndarray(shape=(7,), buffer=np_array([5.40846, -19.15221, 3.59567, 5.83222, 4.50197, -3.31842, 3.13231]), dtype=float)
+        expected_inside_tol_idx = ndarray(shape=(6,), buffer=np_array([0,2,3,4,5,6]), dtype=np_int64)
+        expected_outside_tol_idx = ndarray(shape=(1,), buffer=np_array([1]), dtype=np_int64)
+        is_outlier, inside_tol_idx, outside_tol_idx = ms_helix_prior.identify_outliers_deg(data_rotated=ar, tolerance=15, tolerance_filament=0.2, nr_outliers=0)
+        self.assertFalse(is_outlier)
+        self.assertTrue(array_equal(expected_inside_tol_idx,inside_tol_idx))
+        self.assertTrue((array_equal(expected_outside_tol_idx,outside_tol_idx)))
+
+    def test_identify_outliers_deg_with_outliers(self):
+        ar =ndarray(shape=(7,), buffer=np_array([5.40846, -19.15221, 3.59567, 5.83222, 4.50197, -3.31842, 3.13231]), dtype=float)
+        expected_inside_tol_idx = ndarray(shape=(6,), buffer=np_array([0,2,3,4,5,6]), dtype=np_int64)
+        expected_outside_tol_idx = ndarray(shape=(1,), buffer=np_array([1]), dtype=np_int64)
+        is_outlier, inside_tol_idx, outside_tol_idx = ms_helix_prior.identify_outliers_deg(data_rotated=ar, tolerance=15, tolerance_filament=0, nr_outliers=0)
+        self.assertTrue(is_outlier)
+        self.assertTrue(array_equal(expected_inside_tol_idx,inside_tol_idx))
+        self.assertTrue((array_equal(expected_outside_tol_idx,outside_tol_idx)))
 
 
 
 class Test_identify_outliers_std(unittest.TestCase):
-    def test_identify_outliers_std(self):
-        pass
+    def test_identify_outliers_std_Is_outlier(self):
+        self.assertTrue(ms_helix_prior.identify_outliers_std(std=8.30777625271, tolerance=15, tolerance_std=2 ))
+
+    def test_identify_outliers_std_Is_Not_outlier(self):
+        self.assertFalse(ms_helix_prior.identify_outliers_std(std=8.30777625271, tolerance=15, tolerance_std=1 ))
 
 
 
 class Test_get_tolerance_outliers(unittest.TestCase):
-    def test_get_tolerance_outliers(self):
-        pass
+    def test_get_tolerance_outliers_1(self):
+        inside_tolerance, outside_tolerance = ms_helix_prior.get_tolerance_outliers(ndarray(shape=(7,), buffer=np_array([1.81279, -22.74788, 0., 2.23655, 0.9063, -6.91409, -0.46336]), dtype=float), tolerance=30)
+        expected_inside_tolerance = ndarray(shape=(7,), buffer=np_array([1.81279, -22.74788, 0., 2.23655, 0.9063, -6.91409, -0.46336]), dtype=float)
+        expected_outside_tolerance = ndarray(shape=(0,),buffer=np_array([]), dtype=float)
+        self.assertTrue(array_equal(expected_inside_tolerance, inside_tolerance))
+        self.assertTrue(array_equal(expected_outside_tolerance, outside_tolerance))
+
+    def test_get_tolerance_outliers_2(self):
+        inside_tolerance, outside_tolerance = ms_helix_prior.get_tolerance_outliers(ndarray(shape=(7,), buffer=np_array([1.81279, -22.74788, 0., 2.23655, 0.9063, -6.91409, -0.46336]), dtype=float), tolerance=3)
+        expected_inside_tolerance = ndarray(shape=(5,), buffer=np_array([[ 1.81279 , 0. ,2.23655 , 0.9063 , -0.46336]]), dtype=float)
+        expected_outside_tolerance = ndarray(shape=(2,),buffer=np_array([[-22.74788 , -6.91409]]), dtype=float)
+        self.assertTrue(array_equal(expected_inside_tolerance, inside_tolerance))
+        self.assertTrue(array_equal(expected_outside_tolerance, outside_tolerance))
 
 
 
 class Test_find_tolerance_outliers(unittest.TestCase):
-    def test_find_tolerance_outliers(self):
-        pass
+    def test_find_tolerance_outliers_where_the_outliers_are_less_than_half_array(self):
+        ar =ndarray(shape=(7,), buffer=np_array([5.40846, -19.15221, 3.59567, 5.83222, 4.50197, -3.31842, 3.13231]), dtype=float)
+        expected_inside_tol_idx = ndarray(shape=(6,), buffer=np_array([0,2,3,4,5,6]), dtype=np_int64)
+        expected_outside_tol_idx = ndarray(shape=(1,), buffer=np_array([1]), dtype=np_int64)
+        inside_tol_idx, outside_tol_idx = ms_helix_prior.find_tolerance_outliers(input_array=ar, tolerance=15,  nr_outliers=1)
+        self.assertTrue(array_equal(expected_inside_tol_idx,inside_tol_idx))
+        self.assertTrue((array_equal(expected_outside_tol_idx,outside_tol_idx)))
+
+    def test_find_tolerance_outliers_where_the_outliers_are_more_than_half_array(self):
+        ar =ndarray(shape=(7,), buffer=np_array([5.40846, -19.15221, 3.59567, 5.83222, 4.50197, -3.31842, 3.13231]), dtype=float)
+        expected_inside_tol_idx = ndarray(shape=(6,), buffer=np_array([0,2,3,4,5,6]), dtype=np_int64)
+        expected_outside_tol_idx = ndarray(shape=(1,), buffer=np_array([1]), dtype=np_int64)
+        inside_tol_idx, outside_tol_idx = ms_helix_prior.find_tolerance_outliers(input_array=ar, tolerance=15,  nr_outliers=4)
+        self.assertTrue(array_equal(expected_inside_tol_idx,inside_tol_idx))
+        self.assertTrue((array_equal(expected_outside_tol_idx,outside_tol_idx)))
 
 
 
 class Test_calculate_prior_values_running(unittest.TestCase):
     def test_calculate_prior_values_running(self):
-        pass
+        data_rotated = ndarray(shape=(7,), buffer=np_array([5.40846, -19.15221, 3.59567, 5.83222, 4.50197, -3.31842, 3.13231]), dtype=np_float64)
+        prior_array = ndarray(shape=(7,), buffer=np_array([  6.04271832e-154, 4.94840066e+173 ,  0.00000000e+000 ,  0.00000000e+000 ,  9.07685909e+223,   0.00000000e+000  , 0.00000000e+000]), dtype=np_float64)
+        window_size = 3
+        inside_tol_idx = ndarray(shape=(6,), buffer=np_array([0,2,3,4,5,6]), dtype=np_int64)
+        outside_tol_idx = ndarray(shape=(1,), buffer=np_array([1]), dtype=np_int64)
+        self.assertTrue(ms_helix_prior.calculate_prior_values_running(data_rotated, prior_array, window_size, inside_tol_idx, outside_tol_idx,))
+
 
 
 
 class Test_calc_chi_square(unittest.TestCase):
-    def test_calc_chi_square(self):
-        pass
+    def test_calc_chi_square1(self):
+        fit_dim = 1
+        x_values = ndarray(shape=(6,), buffer=np_array([0, 2, 3, 4, 5, 6]), dtype=np_int64)
+        y_values = ndarray(shape=(6,), buffer=np_array([5.40846, 3.59567, 5.83222, 4.50197, -3.31842, 3.13231]),dtype=np_float64)
+        params = ndarray(shape=(2,), buffer=np_array([-0.81184543, 5.89818643]), dtype=np_float64)
+        self.assertTrue( (abs(10.1931805627 -  ms_helix_prior.calc_chi_square(y_values, x_values, params, fit_dim, func_dict[fit_dim]['func'])) < 0.000000001) )
 
 
 
 class Test_calculate_prior_values_fit(unittest.TestCase):
     def test_calculate_prior_values_fit(self):
-        pass
+        data_rotated = ndarray(shape=(7,), buffer=np_array([5.40846, -19.15221, 3.59567, 5.83222, 4.50197, -3.31842, 3.13231]), dtype=np_float64)
+        prior_array = ndarray(shape=(7,), buffer=np_array([  6.04271832e-154, 4.94840066e+173 ,  0.00000000e+000 ,  0.00000000e+000 ,  9.07685909e+223,   0.00000000e+000  , 0.00000000e+000]), dtype=np_float64)
+        inside_tol_idx = ndarray(shape=(6,), buffer=np_array([0,2,3,4,5,6]), dtype=np_int64)
+        self.assertTrue(None ==ms_helix_prior.calculate_prior_values_fit(data_rotated, prior_array, inside_tol_idx))
 
 
 
@@ -153,8 +262,14 @@ class Test_mark_as_outlier(unittest.TestCase):
         self.assertTrue(array_equal(aspected_result, data['a']))
 
 
+
 class Test_calculate_prior_values_linear(unittest.TestCase):
     def test_calculate_prior_values_linear(self):
-        pass
+        data_rotated = ndarray(shape=(7,), buffer=np_array([5.40846, -19.15221, 3.59567, 5.83222, 4.50197, -3.31842, 3.13231]), dtype=np_float64)
+        prior_array = ndarray(shape=(7,), buffer=np_array([  6.04271832e-154, 4.94840066e+173 ,  0.00000000e+000 ,  0.00000000e+000 ,  9.07685909e+223,   0.00000000e+000  , 0.00000000e+000]), dtype=np_float64)
+        window_size = 3
+        inside_tol_idx = ndarray(shape=(6,), buffer=np_array([0,2,3,4,5,6]), dtype=np_int64)
+        outside_tol_idx = ndarray(shape=(1,), buffer=np_array([1]), dtype=np_int64)
+        self.assertTrue(ms_helix_prior.calculate_prior_values_linear(data_rotated, prior_array, window_size, inside_tol_idx, outside_tol_idx,))
 
 
