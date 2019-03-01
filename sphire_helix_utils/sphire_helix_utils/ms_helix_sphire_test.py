@@ -42,7 +42,6 @@ class Test_ms_helix_sphire(unittest.TestCase):
     def test_get_stack_dtype(self):
         dtype_list = [('ptcl_source_image', '|S200'),('filament', '|S200'),('data_n', '<i8')]
         self.assertTrue(dtype_list == ms_helix_sphire.get_stack_dtype())
-        print "test"
 
     def test_import_sphire_stack(self):
         if self.SKIP_TEST is False:
@@ -98,7 +97,6 @@ class Test_ms_helix_sphire(unittest.TestCase):
     def test_prepare_output(self):
         pt = self.generate_prior_tracker()
         self.assertTrue(self.output_file_index == ms_helix_sphire.prepare_output(tracker=pt['tracker'], file_name=NEW_INDEX_FILE_RAW,file_name_old=self.output_file_index))
-
 
     @classmethod
     def tearDownClass(cls):
