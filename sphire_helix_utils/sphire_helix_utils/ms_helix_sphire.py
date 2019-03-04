@@ -3,34 +3,30 @@ import numpy as np
 import shutil
 
 
-def get_stack_dtype(has_class_id):
-    """Return the dtype of the sphire stack array"""
-    dtype_list = [
-        ('ptcl_source_image', '|S200'),
-        ('filament', '|S200'),
-        ('data_n', '<i8')
-        ]
-
-    if has_class_id:
-        dtype_list.append(('ISAC_class_id', '<i8'))
-    return dtype_list
-
-
 def import_sphire_stack(stack_path, has_class_id):
     """Import the necessary data from a bdb/hdf stack"""
-    dtype_list = get_stack_dtype(has_class_id)
+    dtype_list = [('ptcl_source_image', '|S200'), ('filament', '|S200'), ('data_n', '<i8')] if has_class_id is False \
+        else [('ptcl_source_image', '|S200'), ('filament', '|S200'), ('data_n', '<i8'), ('ISAC_class_id', '<i8')]
 
     imported_data = []
+    is_filament = True
     for name, typ in dtype_list:
         try:
             data = sp.EMUtil.get_all_attributes(stack_path, name)
             imported_data.append(data)
-        except KeyError as e:
-            missed_param = e.message
-            print (" ERROR: the type '"+missed_param+"' is not present")
-            exit(-1)
+        except KeyError:
+            if name == 'filament':
+                dtype_list.extend([('filament_id', '|S200'),('segment_id', '<i8')])
+                is_filament = False
+            else:
+                print (" ERROR: the type '"+name+"' is not present")
+                exit(-1)
+
+    if is_filament is False:
+        dtype_list.remove(('filament', '|S200'))
 
     data_array = np.empty(len(imported_data[0]), dtype=dtype_list)
+
     for idx, dtype in enumerate(dtype_list):
         data_array[dtype[0]] = imported_data[idx]
 
