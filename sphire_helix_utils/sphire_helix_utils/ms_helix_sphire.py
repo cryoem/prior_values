@@ -10,6 +10,9 @@ def get_stack_dtype(has_class_id):
         ('filament', '|S200'),
         ('data_n', '<i8')
         ]
+
+    if has_class_id:
+        dtype_list.append(('class_id', '<i8'))
     return dtype_list
 
 
