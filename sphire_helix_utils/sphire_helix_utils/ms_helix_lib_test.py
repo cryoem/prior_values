@@ -5,6 +5,7 @@ from numpy import array as np_array
 from numpy import ndarray,array_equal
 from shutil import copy2
 from os import remove,rmdir,path
+from os import system as os_system
 
 def clean_up(stuff_to_remove):
     for f in stuff_to_remove:
@@ -110,7 +111,12 @@ class Test_import_data_sphire(unittest.TestCase):
     index_file_raw = '../tests/params_raw.txt'
     params_file = 'index.txt'
     index_file = 'params.txt'
+    valid_bdb = ['bdb:stack_withISAC_class_ID', 'bdb:stack']
 
+    @classmethod
+    def setUpClass(cls):
+        print "\n\tcopying EMAN2DB folder"
+        os_system("cp ../../EMAN2DB/ -r .")
 
     def create_prior_tracker(self,tracker):
         copy2(self.index_file_raw, self.params_file)
@@ -118,52 +124,60 @@ class Test_import_data_sphire(unittest.TestCase):
         return  ms_helix_lib.import_data_sphire(tracker, False, self.params_file, self.index_file)
 
     def test_tracker_is_filename(self):
-        prior_tracker = self.create_prior_tracker(tracker = 'bdb:../tests/stack')
+        for bdb in self.valid_bdb:
+            prior_tracker = self.create_prior_tracker(tracker = bdb)
 
-        self.assertTrue(16 == len(prior_tracker))
-        self.assertTrue(684 == len(prior_tracker['array']))
-        aspected_output =['angle_min', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params', 'idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
-        self.assertTrue(aspected_output == prior_tracker.keys())
-        aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0,  38.32375,  79.75458,  278.43793,  8.00109,  1.00109,  0.19693,  0.73653,  91259.15828, 0, 0)
-        self.assertTrue(aspected_output, prior_tracker['array'][0])
-        aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7,  38.40719,  82.93683,  298.12543, -7.48667,  15.25721,  0.5188,  0.73356,  90890.99319, 683, 683)
-        self.assertTrue(aspected_output, prior_tracker['array'][-1])
-        aspected_output = ('ptcl_source_image', 'filament', 'data_n', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
-        self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
-        clean_up([self.params_file, self.index_file])
+            self.assertTrue(16 == len(prior_tracker))
+            self.assertTrue(684 == len(prior_tracker['array']))
+            aspected_output =['angle_min', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params', 'idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
+            self.assertTrue(aspected_output == prior_tracker.keys())
+            aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0,  38.32375,  79.75458,  278.43793,  8.00109,  1.00109,  0.19693,  0.73653,  91259.15828, 0, 0)
+            self.assertTrue(aspected_output, prior_tracker['array'][0])
+            aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7,  38.40719,  82.93683,  298.12543, -7.48667,  15.25721,  0.5188,  0.73356,  90890.99319, 683, 683)
+            self.assertTrue(aspected_output, prior_tracker['array'][-1])
+            aspected_output = ('ptcl_source_image', 'filament', 'data_n', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
+            self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
+            clean_up([self.params_file, self.index_file])
 
     def test_tracker_is_dictionary_and_contains_array(self):
-        prior_tracker = self.create_prior_tracker(tracker = 'bdb:../tests/stack')
-        tracker = {'constants': {'stack_prior': prior_tracker['array'][['ptcl_source_image', 'filament', 'data_n']]}}
-        prior_tracker = self.create_prior_tracker(tracker=tracker)
+        for bdb in self.valid_bdb:
+            prior_tracker = self.create_prior_tracker(tracker = bdb)
+            tracker = {'constants': {'stack_prior': prior_tracker['array'][['ptcl_source_image', 'filament', 'data_n']]}}
+            prior_tracker = self.create_prior_tracker(tracker=tracker)
 
-        self.assertTrue(16 == len(prior_tracker))
-        self.assertTrue(684 == len(prior_tracker['array']))
-        aspected_output =['angle_min', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params', 'idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
-        self.assertTrue(aspected_output == prior_tracker.keys())
-        aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0,  38.32375,  79.75458,  278.43793,  8.00109,  1.00109,  0.19693,  0.73653,  91259.15828, 0, 0)
-        self.assertTrue(aspected_output, prior_tracker['array'][0])
-        aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7,  38.40719,  82.93683,  298.12543, -7.48667,  15.25721,  0.5188,  0.73356,  90890.99319, 683, 683)
-        self.assertTrue(aspected_output, prior_tracker['array'][-1])
-        aspected_output = ('ptcl_source_image', 'filament', 'data_n', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
-        self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
-        clean_up([self.params_file, self.index_file])
+            self.assertTrue(16 == len(prior_tracker))
+            self.assertTrue(684 == len(prior_tracker['array']))
+            aspected_output =['angle_min', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params', 'idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
+            self.assertTrue(aspected_output == prior_tracker.keys())
+            aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0,  38.32375,  79.75458,  278.43793,  8.00109,  1.00109,  0.19693,  0.73653,  91259.15828, 0, 0)
+            self.assertTrue(aspected_output, prior_tracker['array'][0])
+            aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7,  38.40719,  82.93683,  298.12543, -7.48667,  15.25721,  0.5188,  0.73356,  90890.99319, 683, 683)
+            self.assertTrue(aspected_output, prior_tracker['array'][-1])
+            aspected_output = ('ptcl_source_image', 'filament', 'data_n', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
+            self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
+            clean_up([self.params_file, self.index_file])
 
 
     def test_tracker_is_dictionary_and_contains_filename(self):
-        tracker = {'constants': {'stack': 'bdb:../tests/stack'}}
-        prior_tracker = self.create_prior_tracker(tracker=tracker)
-        self.assertTrue(16 == len(prior_tracker))
-        self.assertTrue(684 == len(prior_tracker['array']))
-        aspected_output = ['angle_min', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params','idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
-        self.assertTrue(aspected_output == prior_tracker.keys())
-        aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0, 38.32375, 79.75458, 278.43793, 8.00109, 1.00109, 0.19693, 0.73653, 91259.15828, 0, 0)
-        self.assertTrue(aspected_output, prior_tracker['array'][0])
-        aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7, 38.40719, 82.93683,  298.12543, -7.48667, 15.25721, 0.5188, 0.73356, 90890.99319, 683, 683)
-        self.assertTrue(aspected_output, prior_tracker['array'][-1])
-        aspected_output = ('ptcl_source_image', 'filament', 'data_n', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
-        self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
-        clean_up([self.params_file, self.index_file])
+        for bdb in self.valid_bdb:
+            tracker = {'constants': {'stack': bdb}}
+            prior_tracker = self.create_prior_tracker(tracker=tracker)
+            self.assertTrue(16 == len(prior_tracker))
+            self.assertTrue(684 == len(prior_tracker['array']))
+            aspected_output = ['angle_min', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params','idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
+            self.assertTrue(aspected_output == prior_tracker.keys())
+            aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0, 38.32375, 79.75458, 278.43793, 8.00109, 1.00109, 0.19693, 0.73653, 91259.15828, 0, 0)
+            self.assertTrue(aspected_output, prior_tracker['array'][0])
+            aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7, 38.40719, 82.93683,  298.12543, -7.48667, 15.25721, 0.5188, 0.73356, 90890.99319, 683, 683)
+            self.assertTrue(aspected_output, prior_tracker['array'][-1])
+            aspected_output = ('ptcl_source_image', 'filament', 'data_n', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
+            self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
+            clean_up([self.params_file, self.index_file])
+
+    @classmethod
+    def tearDownClass(cls):
+        print "\n\tremove EMAN2DB folder"
+        os_system("rm -r EMAN2DB/")
 
 
 
