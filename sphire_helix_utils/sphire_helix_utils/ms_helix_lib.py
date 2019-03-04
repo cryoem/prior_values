@@ -80,7 +80,7 @@ def combine_and_order_filaments(prior_tracker):
         )
 
 
-def import_data_sphire(tracker, has_class_id, params_file=None, index_file=None):
+def import_data_sphire(tracker, has_ASAC_class_id, params_file=None, index_file=None):
     """
     Import the original stack information and create a tracker for the following calculations.
     :tracker: File name or dictionary - if dictionary it needs to contain the key stack or stack_prior:
@@ -92,13 +92,13 @@ def import_data_sphire(tracker, has_class_id, params_file=None, index_file=None)
     prior_tracker = {}
     # Import the original stack for different input cases
     if isinstance(tracker, basestring):
-        original_stack = mhs.import_sphire_stack(stack_path=tracker, has_class_id=has_class_id)
+        original_stack = mhs.import_sphire_stack(stack_path=tracker, has_ASAC_class_id=has_ASAC_class_id)
     elif isinstance(tracker, dict):
         # Only load the stack if it is not already loaded
         if 'stack_prior' in tracker['constants']:
             original_stack = tracker['constants']['stack_prior']
         else:
-            original_stack = mhs.import_sphire_stack(stack_path=tracker['constants']['stack'], has_class_id=has_class_id)
+            original_stack = mhs.import_sphire_stack(stack_path=tracker['constants']['stack'], has_ASAC_class_id=has_ASAC_class_id)
     else:
         print('Unreachable code!')
         assert(False)

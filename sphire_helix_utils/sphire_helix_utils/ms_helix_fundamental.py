@@ -97,7 +97,7 @@ def calculate_priors(
     # Import the stack and get parameters
     if typ == 'sphire':
         prior_tracker = mhl.import_data_sphire(
-            tracker=tracker, index_file=index_file, params_file=params_file, has_class_id=has_class_id
+            tracker=tracker, index_file=index_file, params_file=params_file, has_ASAC_class_id=has_class_id
             )
     elif typ == 'relion':
         prior_tracker = mhl.import_data_relion(file_name=tracker)

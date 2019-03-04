@@ -3,9 +3,9 @@ import numpy as np
 import shutil
 
 
-def import_sphire_stack(stack_path, has_class_id):
+def import_sphire_stack(stack_path, has_ASAC_class_id):
     """Import the necessary data from a bdb/hdf stack"""
-    dtype_list = [('ptcl_source_image', '|S200'), ('filament', '|S200'), ('data_n', '<i8')] if has_class_id is False \
+    dtype_list = [('ptcl_source_image', '|S200'), ('filament', '|S200'), ('data_n', '<i8')] if has_ASAC_class_id is False \
         else [('ptcl_source_image', '|S200'), ('filament', '|S200'), ('data_n', '<i8'), ('ISAC_class_id', '<i8')]
 
     imported_data = []

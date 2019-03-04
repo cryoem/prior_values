@@ -118,14 +118,14 @@ class Test_import_data_sphire(unittest.TestCase):
         print "\n\tcopying EMAN2DB folder"
         os_system("cp ../../EMAN2DB/ -r .")
 
-    def create_prior_tracker(self,tracker):
+    def create_prior_tracker(self,tracker, has_ASAC_class_id):
         copy2(self.index_file_raw, self.params_file)
         copy2(self.params_file_raw, self.index_file)
-        return  ms_helix_lib.import_data_sphire(tracker, False, self.params_file, self.index_file)
+        return  ms_helix_lib.import_data_sphire(tracker, has_ASAC_class_id, self.params_file, self.index_file)
 
     def test_tracker_is_filename(self):
         for bdb in self.valid_bdb:
-            prior_tracker = self.create_prior_tracker(tracker = bdb)
+            prior_tracker = self.create_prior_tracker(tracker = bdb, has_ASAC_class_id=False)
 
             self.assertTrue(16 == len(prior_tracker))
             self.assertTrue(684 == len(prior_tracker['array']))
@@ -141,9 +141,9 @@ class Test_import_data_sphire(unittest.TestCase):
 
     def test_tracker_is_dictionary_and_contains_array(self):
         for bdb in self.valid_bdb:
-            prior_tracker = self.create_prior_tracker(tracker = bdb)
+            prior_tracker = self.create_prior_tracker(tracker = bdb, has_ASAC_class_id=False)
             tracker = {'constants': {'stack_prior': prior_tracker['array'][['ptcl_source_image', 'filament', 'data_n']]}}
-            prior_tracker = self.create_prior_tracker(tracker=tracker)
+            prior_tracker = self.create_prior_tracker(tracker=tracker, has_ASAC_class_id=False)
 
             self.assertTrue(16 == len(prior_tracker))
             self.assertTrue(684 == len(prior_tracker['array']))
@@ -161,7 +161,7 @@ class Test_import_data_sphire(unittest.TestCase):
     def test_tracker_is_dictionary_and_contains_filename(self):
         for bdb in self.valid_bdb:
             tracker = {'constants': {'stack': bdb}}
-            prior_tracker = self.create_prior_tracker(tracker=tracker)
+            prior_tracker = self.create_prior_tracker(tracker=tracker,has_ASAC_class_id=False)
             self.assertTrue(16 == len(prior_tracker))
             self.assertTrue(684 == len(prior_tracker['array']))
             aspected_output = ['angle_min', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params','idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
