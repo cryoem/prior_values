@@ -3,7 +3,7 @@ import numpy as np
 import shutil
 
 
-def get_stack_dtype():
+def get_stack_dtype(has_class_id):
     """Return the dtype of the sphire stack array"""
     dtype_list = [
         ('ptcl_source_image', '|S200'),
@@ -13,9 +13,9 @@ def get_stack_dtype():
     return dtype_list
 
 
-def import_sphire_stack(stack_path):
+def import_sphire_stack(stack_path, has_class_id):
     """Import the necessary data from a bdb/hdf stack"""
-    dtype_list = get_stack_dtype()
+    dtype_list = get_stack_dtype(has_class_id)
 
     imported_data = []
     for name, typ in dtype_list:

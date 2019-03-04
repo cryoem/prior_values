@@ -115,7 +115,7 @@ class Test_import_data_sphire(unittest.TestCase):
     def create_prior_tracker(self,tracker):
         copy2(self.index_file_raw, self.params_file)
         copy2(self.params_file_raw, self.index_file)
-        return  ms_helix_lib.import_data_sphire(tracker, self.params_file, self.index_file)
+        return  ms_helix_lib.import_data_sphire(tracker, False, self.params_file, self.index_file)
 
     def test_tracker_is_filename(self):
         prior_tracker = self.create_prior_tracker(tracker = 'bdb:../tests/stack')

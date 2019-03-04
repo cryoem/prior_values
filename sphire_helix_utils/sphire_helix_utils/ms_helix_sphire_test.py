@@ -34,14 +34,14 @@ class Test_ms_helix_sphire(unittest.TestCase):
         print "\n\tcopying EMAN2DB folder"
         os_system("cp ../../EMAN2DB/ -r .")
         try:
-            cls.dataDB=ms_helix_sphire.import_sphire_stack(NAME)
+            cls.dataDB=ms_helix_sphire.import_sphire_stack(NAME, False)
         except RuntimeError:
             cls.SKIP_TEST = True
             print ("\n\tWARNING: CANNOT IMPORT THE DB\n\tWARNING: CANNOT IMPORT THE DB\n\tWARNING: CANNOT IMPORT THE DB")
 
     def test_get_stack_dtype(self):
         dtype_list = [('ptcl_source_image', '|S200'),('filament', '|S200'),('data_n', '<i8')]
-        self.assertTrue(dtype_list == ms_helix_sphire.get_stack_dtype())
+        self.assertTrue(dtype_list == ms_helix_sphire.get_stack_dtype(False))
 
     def test_import_sphire_stack(self):
         if self.SKIP_TEST is False:
