@@ -18,6 +18,7 @@ def clean_up(stuff_to_remove):
         if path.exists(f) and path.isfile(f):
             remove(f)
 
+
 class Test_ms_helix_sphire(unittest.TestCase):
     pt_data = np_array([(0, 1, 2, 3, 0, 1, 2, 0, 0), (5, 6, 7, 8, 0, 1, 2, 0, 1), (10, 11, 12, 13, 0, 1, 2, 0, 2),(15, 16, 17, 18, 0, 1, 2, 1, 3)], dtype=[('angle1_prior', '<i8'), ('phi', '<i8'), ('shift_x', '<i8'), ('shift_y', '<i8'), ('err1', '<i8'), ('err2', '<i8'), ('norm', '<i8'), ('outlier', '<i8'), ('stack_idx', '<i8')])
     output_file_params = 'params.txt'
@@ -34,18 +35,16 @@ class Test_ms_helix_sphire(unittest.TestCase):
         os_system("cp ../../EMAN2DB/ -r .")
 
     def test_get_stack_dtype_has_class_id(self):
-        dtype_list = [('ptcl_source_image', '|S200'),('filament', '|S200'),('data_n', '<i8'), ('class_id', '<i8')]
+        dtype_list = [('ptcl_source_image', '|S200'),('filament', '|S200'),('data_n', '<i8'), ('ISAC_class_id', '<i8')]
         self.assertTrue(dtype_list == ms_helix_sphire.get_stack_dtype(has_class_id=True))
 
     def test_get_stack_dtype_no_class_id(self):
         dtype_list = [('ptcl_source_image', '|S200'),('filament', '|S200'),('data_n', '<i8')]
         self.assertTrue(dtype_list == ms_helix_sphire.get_stack_dtype(has_class_id=False))
 
-    @unittest.skip("TEST_IMPORT_SPHIRE_STACK_HAS_CLASS_ID at the noment it does not work")
-    def test_import_sphire_stack_has_class_id(self):
-        dataDB = ms_helix_sphire.import_sphire_stack(NAME, has_class_id=True)
-        self.assertTrue(684 == len(dataDB))
-        self.assertTrue(dataDB.dtype == [('ptcl_source_image', 'S200'), ('filament', 'S200'), ('data_n', '<i8'), ('class_id', '<i8')])
+    def test_import_sphire_stack_has_class_id_exception_throw(self):
+        with self.assertRaises(SystemExit):
+            ms_helix_sphire.import_sphire_stack(NAME, has_class_id=True)
 
     def test_import_sphire_stack_no_class_id(self):
         dataDB = ms_helix_sphire.import_sphire_stack(NAME, has_class_id=False)

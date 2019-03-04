@@ -12,7 +12,7 @@ def get_stack_dtype(has_class_id):
         ]
 
     if has_class_id:
-        dtype_list.append(('class_id', '<i8'))
+        dtype_list.append(('ISAC_class_id', '<i8'))
     return dtype_list
 
 
@@ -22,8 +22,13 @@ def import_sphire_stack(stack_path, has_class_id):
 
     imported_data = []
     for name, typ in dtype_list:
-        data = sp.EMUtil.get_all_attributes(stack_path, name)
-        imported_data.append(data)
+        try:
+            data = sp.EMUtil.get_all_attributes(stack_path, name)
+            imported_data.append(data)
+        except KeyError as e:
+            missed_param = e.message
+            print (" ERROR: the type '"+missed_param+"' is not present")
+            exit(-1)
 
     data_array = np.empty(len(imported_data[0]), dtype=dtype_list)
     for idx, dtype in enumerate(dtype_list):
