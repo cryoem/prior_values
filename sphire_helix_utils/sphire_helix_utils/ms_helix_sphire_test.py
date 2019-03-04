@@ -35,28 +35,28 @@ class Test_ms_helix_sphire(unittest.TestCase):
 
     def test_import_sphire_stack_bad_header_exception_throw(self):
         with self.assertRaises(SystemExit):
-            ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack', has_ASAC_class_id=True)
-            ms_helix_sphire.import_sphire_stack(stack_path='bdb:error_stack_with_filament_id_without_segment_id', has_ASAC_class_id=False)
-            ms_helix_sphire.import_sphire_stack(stack_path='bdb:error_stack_NO_filament', has_ASAC_class_id=False)
-            ms_helix_sphire.import_sphire_stack(stack_path='bdb:error_stack_NO_data_n', has_ASAC_class_id=False)
+            ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack', has_ISAC_class_id=True)
+            ms_helix_sphire.import_sphire_stack(stack_path='bdb:error_stack_with_filament_id_without_segment_id', has_ISAC_class_id=False)
+            ms_helix_sphire.import_sphire_stack(stack_path='bdb:error_stack_NO_filament', has_ISAC_class_id=False)
+            ms_helix_sphire.import_sphire_stack(stack_path='bdb:error_stack_NO_data_n', has_ISAC_class_id=False)
 
     def test_import_sphire_stack_no_ISAC_class_id(self):
-        dataDB = ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack', has_ASAC_class_id=False)
+        dataDB = ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack', has_ISAC_class_id=False)
         self.assertTrue(684 == len(dataDB))
         self.assertTrue(dataDB.dtype == [('ptcl_source_image', 'S200'), ('filament', 'S200'), ('data_n', '<i8')])
 
     def test_import_sphire_stack_has_ISAC_class_id(self):
-        dataDB = ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack_withISAC_class_ID', has_ASAC_class_id=True)
+        dataDB = ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack_withISAC_class_ID', has_ISAC_class_id=True)
         self.assertTrue(684 == len(dataDB))
         self.assertTrue(dataDB.dtype == [('ptcl_source_image', 'S200'), ('filament', 'S200'), ('data_n', '<i8'), ('ISAC_class_id', '<i8')])
 
     def test_import_sphire_withsegmentID_filament_ID(self):
-        dataDB = ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack_withsegmentID_filament_ID', has_ASAC_class_id=False)
+        dataDB = ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack_withsegmentID_filament_ID', has_ISAC_class_id=False)
         self.assertTrue(684 == len(dataDB))
         self.assertTrue(dataDB.dtype == [('ptcl_source_image', 'S200'),  ('data_n', '<i8'), ('filament_id', 'S200'), ('segment_id', '<i8')])
 
     def test_import_sphire_withsegmentID_filament_ID_ISAC_class_id(self):
-        dataDB = ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack_withsegmentID_filament_ID', has_ASAC_class_id=True)
+        dataDB = ms_helix_sphire.import_sphire_stack(stack_path='bdb:stack_withsegmentID_filament_ID', has_ISAC_class_id=True)
         self.assertTrue(684 == len(dataDB))
         a=dataDB.dtype
         self.assertTrue(dataDB.dtype == [('ptcl_source_image', 'S200'),  ('data_n', '<i8'), ('ISAC_class_id', '<i8'), ('filament_id', 'S200'), ('segment_id', '<i8')])

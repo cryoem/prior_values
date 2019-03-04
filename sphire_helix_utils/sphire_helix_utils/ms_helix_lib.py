@@ -80,7 +80,7 @@ def combine_and_order_filaments(prior_tracker):
         )
 
 
-def import_data_sphire(tracker, has_ASAC_class_id, params_file=None, index_file=None):
+def import_data_sphire(tracker, has_ISAC_class_id, params_file=None, index_file=None):
     """
     Import the original stack information and create a tracker for the following calculations.
     :tracker: File name or dictionary - if dictionary it needs to contain the key stack or stack_prior:
@@ -92,13 +92,13 @@ def import_data_sphire(tracker, has_ASAC_class_id, params_file=None, index_file=
     prior_tracker = {}
     # Import the original stack for different input cases
     if isinstance(tracker, basestring):
-        original_stack = mhs.import_sphire_stack(stack_path=tracker, has_ASAC_class_id=has_ASAC_class_id)
+        original_stack = mhs.import_sphire_stack(stack_path=tracker, has_ISAC_class_id=has_ISAC_class_id)
     elif isinstance(tracker, dict):
         # Only load the stack if it is not already loaded
         if 'stack_prior' in tracker['constants']:
             original_stack = tracker['constants']['stack_prior']
         else:
-            original_stack = mhs.import_sphire_stack(stack_path=tracker['constants']['stack'], has_ASAC_class_id=has_ASAC_class_id)
+            original_stack = mhs.import_sphire_stack(stack_path=tracker['constants']['stack'], has_ISAC_class_id=has_ISAC_class_id)
     else:
         print('Unreachable code!')
         assert(False)
@@ -113,8 +113,21 @@ def import_data_sphire(tracker, has_ASAC_class_id, params_file=None, index_file=
 
     # Names of the different array columns
     prior_tracker['order'] = 'source_n'
-    prior_tracker['micrograph_id'], prior_tracker['filament_id'], prior_tracker['segment_id'] = \
-        original_stack.dtype.names
+
+    prior_tracker['micrograph_id'] = 'ptcl_source_image'
+    if has_ISAC_class_id:
+        prior_tracker['ISAC_class_id'] = 'ISAC_class_id'
+
+    if "filament" and "data_n" in original_stack.dtype.names:
+        prior_tracker['filament_id'] = "filament"
+        prior_tracker['segment_id'] = "data_n"
+    elif "filament_id" and "segment_id" in original_stack.dtype.names:
+        prior_tracker['filament_id'] = "filament_id"
+        prior_tracker['segment_id'] = "segment_id"
+    else:
+        print ("ERROR: filament_id and segment_id or filament and data_n have to be present in the bdb header")
+        exit(-1)
+
     prior_tracker['angle_names'] = [
         ['theta', 'theta_prior', 'theta_rot'],
         ['psi', 'psi_prior', 'psi_rot']
