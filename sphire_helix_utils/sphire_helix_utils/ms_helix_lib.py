@@ -121,11 +121,12 @@ def import_data_sphire(tracker, has_ISAC_class_id, params_file=None, index_file=
     if "filament" and "data_n" in original_stack.dtype.names:
         prior_tracker['filament_id'] = "filament"
         prior_tracker['segment_id'] = "data_n"
-    elif "filament_id" and "segment_id" in original_stack.dtype.names:
+    elif "filament_id" and "segment_id" and "data_n" in original_stack.dtype.names:
         prior_tracker['filament_id'] = "filament_id"
         prior_tracker['segment_id'] = "segment_id"
     else:
-        print ("ERROR: filament_id and segment_id or filament and data_n have to be present in the bdb header")
+        print ("ERROR: 'filament_id, segment_id and data_n' or 'filament and data_n' have to be present in the bdb header")
+        print ("\t\t you should not be here because I prevent this kind of error in 'ms_helix_sphire.py' in the 'import_sphire_stack' function")
         exit(-1)
 
     prior_tracker['angle_names'] = [

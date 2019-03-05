@@ -114,8 +114,6 @@ class Test_import_data_sphire(unittest.TestCase):
     valid_bdb_without_ISAC_class_id = ['bdb:stack_withISAC_class_ID', 'bdb:stack']
     valid_bdb_with_ISAC_class_id = ['bdb:stack_withISAC_class_ID', 'bdb:stack_withISAC_class_ID']
 
-    # todo: test the new error case ... maybe launch an exception
-
     @classmethod
     def setUpClass(cls):
         print "\n\tcopying EMAN2DB folder"
@@ -125,6 +123,13 @@ class Test_import_data_sphire(unittest.TestCase):
         copy2(self.index_file_raw, self.params_file)
         copy2(self.params_file_raw, self.index_file)
         return  ms_helix_lib.import_data_sphire(tracker, has_ISAC_class_id, self.params_file, self.index_file)
+
+    def test_import_sphire_stack_bad_header_exception_throw(self):
+        with self.assertRaises(SystemExit):
+            self.create_prior_tracker(tracker='bdb:stack', has_ISAC_class_id=True)
+            self.create_prior_tracker(tracker='bdb:error_stack_with_filament_id_without_segment_id', has_ISAC_class_id=False)
+            self.create_prior_tracker(tracker='bdb:error_stack_NO_filament', has_ISAC_class_id=False)
+            self.create_prior_tracker(tracker='bdb:error_stack_NO_data_n', has_ISAC_class_id=False)
 
     def test_tracker_is_filename_without_ISAC_class_id(self):
         for bdb in self.valid_bdb_without_ISAC_class_id:
@@ -149,7 +154,6 @@ class Test_import_data_sphire(unittest.TestCase):
             self.assertTrue(17 == len(prior_tracker))
             self.assertTrue(684 == len(prior_tracker['array']))
             aspected_output =['angle_min', 'ISAC_class_id', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params', 'idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
-            l=prior_tracker.keys()
             self.assertTrue(aspected_output == prior_tracker.keys())
             aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0,  38.32375,  79.75458,  278.43793,  8.00109,  1.00109,  0.19693,  0.73653,  91259.15828, 0, 0)
             self.assertTrue(aspected_output, prior_tracker['array'][0])
@@ -166,9 +170,7 @@ class Test_import_data_sphire(unittest.TestCase):
         self.assertTrue(684 == len(prior_tracker['array']))
         aspected_output = ['angle_min', 'ISAC_class_id', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params', 'idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
         self.assertTrue(aspected_output == prior_tracker.keys())
-        aspected_output = (
-        'filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0, 38.32375, 79.75458,
-        278.43793, 8.00109, 1.00109, 0.19693, 0.73653, 91259.15828, 0, 0)
+        aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0, 38.32375, 79.75458, 278.43793, 8.00109, 1.00109, 0.19693, 0.73653, 91259.15828, 0, 0)
         self.assertTrue(aspected_output, prior_tracker['array'][0])
         aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7, 38.40719, 82.93683, 298.12543, -7.48667, 15.25721, 0.5188, 0.73356, 90890.99319, 683, 683)
         self.assertTrue(aspected_output, prior_tracker['array'][-1])
@@ -290,6 +292,7 @@ class Test_import_data_sphire(unittest.TestCase):
 class Test_import_data_relion(unittest.TestCase):
     def test_import_a_relion_star_file(self):
         prior_tracker = ms_helix_lib.import_data_relion(file_name = '../tests/data_test.star')
+
         self.assertTrue(14 == len(prior_tracker))
         self.assertTrue(274 == len(prior_tracker['array']))
         aspected_output = ['angle_min', 'micrograph_id', 'segment_id', 'output_dir', 'output_file', 'idx_angle_prior', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
