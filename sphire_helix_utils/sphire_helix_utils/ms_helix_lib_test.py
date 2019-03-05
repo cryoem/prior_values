@@ -114,7 +114,7 @@ class Test_import_data_sphire(unittest.TestCase):
     valid_bdb_without_ISAC_class_id = ['bdb:stack_withISAC_class_ID', 'bdb:stack']
     valid_bdb_with_ISAC_class_id = ['bdb:stack_withISAC_class_ID', 'bdb:stack_withISAC_class_ID']
 
-    # todo: to test it  'bdb:stack_withsegmentID_filament_ID', and the new error case ... maybe launch an exception
+    # todo: test the new error case ... maybe launch an exception
 
     @classmethod
     def setUpClass(cls):
@@ -159,6 +159,22 @@ class Test_import_data_sphire(unittest.TestCase):
             self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
             clean_up([self.params_file, self.index_file])
 
+    def test_tracker_is_filename_with_filamentID_segmentID_ISAC_class_id(self):
+        prior_tracker = self.create_prior_tracker(tracker="bdb:stack_withsegmentID_filamentID_ISAC_classID", has_ISAC_class_id=True)
+
+        self.assertTrue(17 == len(prior_tracker))
+        self.assertTrue(684 == len(prior_tracker['array']))
+        aspected_output = ['angle_min', 'ISAC_class_id', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params', 'idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
+        self.assertTrue(aspected_output == prior_tracker.keys())
+        aspected_output = (
+        'filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0, 38.32375, 79.75458,
+        278.43793, 8.00109, 1.00109, 0.19693, 0.73653, 91259.15828, 0, 0)
+        self.assertTrue(aspected_output, prior_tracker['array'][0])
+        aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7, 38.40719, 82.93683, 298.12543, -7.48667, 15.25721, 0.5188, 0.73356, 90890.99319, 683, 683)
+        self.assertTrue(aspected_output, prior_tracker['array'][-1])
+        aspected_output = ('ptcl_source_image', 'data_n', 'ISAC_class_id', 'filament_id', 'segment_id', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
+        self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
+        clean_up([self.params_file, self.index_file])
 
     def test_tracker_is_dictionary_and_contains_array_without_ISAC_class_id(self):
         for bdb in self.valid_bdb_without_ISAC_class_id:
@@ -177,6 +193,23 @@ class Test_import_data_sphire(unittest.TestCase):
             aspected_output = ('ptcl_source_image', 'filament', 'data_n', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
             self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
             clean_up([self.params_file, self.index_file])
+
+    def test_tracker_is_dictionary_and_contains_array_with_filamentID_segmentID_ISAC_class_id(self):
+        prior_tracker = self.create_prior_tracker(tracker = "bdb:stack_withsegmentID_filamentID_ISAC_classID", has_ISAC_class_id=True)
+        tracker = {'constants': {'stack_prior': prior_tracker['array'][['ptcl_source_image', 'filament_id', 'segment_id', 'data_n']]}}
+        prior_tracker = self.create_prior_tracker(tracker=tracker, has_ISAC_class_id=True)
+
+        self.assertTrue(17 == len(prior_tracker))
+        self.assertTrue(684 == len(prior_tracker['array']))
+        aspected_output = ['angle_min', 'ISAC_class_id', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params', 'idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
+        self.assertTrue(aspected_output == prior_tracker.keys())
+        aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0,  38.32375,  79.75458,  278.43793,  8.00109,  1.00109,  0.19693,  0.73653,  91259.15828, 0, 0)
+        self.assertTrue(aspected_output, prior_tracker['array'][0])
+        aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7,  38.40719,  82.93683,  298.12543, -7.48667,  15.25721,  0.5188,  0.73356,  90890.99319, 683, 683)
+        self.assertTrue(aspected_output, prior_tracker['array'][-1])
+        aspected_output = ('ptcl_source_image', 'filament_id', 'segment_id', 'data_n', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
+        self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
+        clean_up([self.params_file, self.index_file])
 
     def test_tracker_is_dictionary_and_contains_array_with_ISAC_class_id(self):
         for bdb in self.valid_bdb_with_ISAC_class_id:
@@ -213,6 +246,22 @@ class Test_import_data_sphire(unittest.TestCase):
             aspected_output = ('ptcl_source_image', 'filament', 'data_n', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
             self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
             clean_up([self.params_file, self.index_file])
+
+    def test_tracker_is_dictionary_and_contains_filenamewith_filamentID_segmentID_ISAC_class_id(self):
+        tracker = {'constants': {'stack': "bdb:stack_withsegmentID_filamentID_ISAC_classID"}}
+        prior_tracker = self.create_prior_tracker(tracker=tracker, has_ISAC_class_id=True)
+
+        self.assertTrue(17 == len(prior_tracker))
+        self.assertTrue(684 == len(prior_tracker['array']))
+        aspected_output = ['angle_min', 'ISAC_class_id', 'micrograph_id', 'segment_id', 'output_dir', 'output_file_params', 'idx_angle_prior', 'output_file_index', 'tracker', 'filament_id', 'angle_names', 'idx_angle', 'array', 'angle_max', 'order', 'idx_angle_rot', 'output_columns']
+        self.assertTrue(aspected_output == prior_tracker.keys())
+        aspected_output = ('filt_Factin_ADP_cLys_0005_falcon2.hdf', 'filt_Factin_ADP_cLys_0005_falcon2.hdf0000', 0, 38.32375, 79.75458, 278.43793, 8.00109, 1.00109, 0.19693, 0.73653, 91259.15828, 0, 0)
+        self.assertTrue(aspected_output, prior_tracker['array'][0])
+        aspected_output = ('filt_Factin_ADP_cLys_0009_falcon2.hdf', 'filt_Factin_ADP_cLys_0009_falcon2.hdf0009', 7, 38.40719, 82.93683,  298.12543, -7.48667, 15.25721, 0.5188, 0.73356, 90890.99319, 683, 683)
+        self.assertTrue(aspected_output, prior_tracker['array'][-1])
+        aspected_output = ('ptcl_source_image', 'data_n', 'ISAC_class_id', 'filament_id', 'segment_id', 'phi', 'theta', 'psi', 'shift_x', 'shift_y', 'err1', 'err2', 'norm', 'source_n', 'stack_idx')
+        self.assertTrue(aspected_output == prior_tracker['array'].dtype.names)
+        clean_up([self.params_file, self.index_file])
 
     def test_tracker_is_dictionary_and_contains_filenamewith_ISAC_class_id(self):
         for bdb in self.valid_bdb_with_ISAC_class_id:
